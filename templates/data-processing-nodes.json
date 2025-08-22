@@ -1,0 +1,180 @@
+{
+  "data_processing_nodes": {
+    "data_transformation": {
+      "name": "Data Transformation Set Node",
+      "description": "Template for common data transformation operations",
+      "category": "data_processing",
+      "node": {
+        "parameters": {
+          "mode": "manual",
+          "duplicateItem": false,
+          "assignments": {
+            "assignments": [
+              {
+                "id": "timestamp",
+                "name": "processed_at",
+                "type": "string",
+                "value": "={{ new Date().toISOString() }}"
+              },
+              {
+                "id": "full_name",
+                "name": "full_name", 
+                "type": "string",
+                "value": "={{ ($json.first_name || '') + ' ' + ($json.last_name || '') }}"
+              },
+              {
+                "id": "email_domain",
+                "name": "email_domain",
+                "type": "string", 
+                "value": "={{ $json.email ? $json.email.split('@')[1] : '' }}"
+              },
+              {
+                "id": "status_normalized",
+                "name": "status",
+                "type": "string",
+                "value": "={{ $json.status ? $json.status.toLowerCase().trim() : 'unknown' }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3,
+        "notes": "Add or modify field assignments based on transformation requirements"
+      }
+    },
+    "batch_processor": {
+      "name": "Batch Processing Template",
+      "description": "Split in batches node with optimal configuration",
+      "category": "data_processing",
+      "node": {
+        "parameters": {
+          "batchSize": 50,
+          "options": {
+            "reset": false
+          }
+        },
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "notes": "Adjust batch size based on downstream processing capacity and memory limits"
+      }
+    },
+    "merge_results": {
+      "name": "Merge Results Template",
+      "description": "Merge node to combine outputs from parallel processing",
+      "category": "data_processing",
+      "node": {
+        "parameters": {
+          "mode": "combine",
+          "combineBy": "combineAll",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 2,
+        "notes": "Use after parallel processing to combine all results into single output"
+      }
+    },
+    "data_aggregation": {
+      "name": "Data Aggregation Code Node",
+      "description": "JavaScript code node for data aggregation and statistics",
+      "category": "data_processing",
+      "node": {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "// Data aggregation template\nconst items = $input.all();\nconst data = items.map(item => item.json);\n\n// Group data by specified field\nconst groupBy = $json.group_by_field || 'category';\nconst grouped = data.reduce((acc, item) => {\n  const key = item[groupBy] || 'unknown';\n  if (!acc[key]) {\n    acc[key] = [];\n  }\n  acc[key].push(item);\n  return acc;\n}, {});\n\n// Calculate aggregations for each group\nconst aggregations = Object.entries(grouped).map(([groupKey, groupData]) => {\n  const numericFields = ['amount', 'quantity', 'value']; // Configure as needed\n  const stats = {};\n  \n  numericFields.forEach(field => {\n    const values = groupData\n      .map(item => parseFloat(item[field]))\n      .filter(val => !isNaN(val));\n    \n    if (values.length > 0) {\n      stats[field] = {\n        count: values.length,\n        sum: values.reduce((a, b) => a + b, 0),\n        avg: values.reduce((a, b) => a + b, 0) / values.length,\n        min: Math.min(...values),\n        max: Math.max(...values)\n      };\n    }\n  });\n  \n  return {\n    [groupBy]: groupKey,\n    record_count: groupData.length,\n    statistics: stats,\n    first_record: groupData[0],\n    last_record: groupData[groupData.length - 1],\n    processed_at: new Date().toISOString()\n  };\n});\n\n// Overall summary\nconst summary = {\n  total_records: data.length,\n  total_groups: Object.keys(grouped).length,\n  processing_timestamp: new Date().toISOString(),\n  groups: aggregations\n};\n\nreturn [{json: summary}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "notes": "Customize groupBy field and numeric fields for aggregation"
+      }
+    },
+    "data_filtering": {
+      "name": "Data Filtering Code Node",
+      "description": "Advanced data filtering with multiple conditions",
+      "category": "data_processing",
+      "node": {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "// Data filtering template\nconst items = $input.all();\nconst filterConfig = $json.filter_config || {};\n\n// Define filter criteria\nconst filters = {\n  // Date range filter\n  dateRange: (item) => {\n    if (!filterConfig.date_field || !filterConfig.start_date) return true;\n    const itemDate = new Date(item[filterConfig.date_field]);\n    const startDate = new Date(filterConfig.start_date);\n    const endDate = filterConfig.end_date ? new Date(filterConfig.end_date) : new Date();\n    return itemDate >= startDate && itemDate <= endDate;\n  },\n  \n  // Status filter\n  status: (item) => {\n    if (!filterConfig.allowed_statuses) return true;\n    return filterConfig.allowed_statuses.includes(item.status);\n  },\n  \n  // Numeric range filter\n  numericRange: (item) => {\n    if (!filterConfig.numeric_field) return true;\n    const value = parseFloat(item[filterConfig.numeric_field]);\n    if (isNaN(value)) return false;\n    \n    const min = filterConfig.min_value !== undefined ? filterConfig.min_value : -Infinity;\n    const max = filterConfig.max_value !== undefined ? filterConfig.max_value : Infinity;\n    return value >= min && value <= max;\n  },\n  \n  // Text pattern filter\n  textPattern: (item) => {\n    if (!filterConfig.text_field || !filterConfig.pattern) return true;\n    const text = String(item[filterConfig.text_field] || '').toLowerCase();\n    const pattern = filterConfig.pattern.toLowerCase();\n    return filterConfig.pattern_type === 'exact' ? \n      text === pattern : \n      text.includes(pattern);\n  },\n  \n  // Custom condition filter\n  custom: (item) => {\n    if (!filterConfig.custom_condition) return true;\n    try {\n      return eval(filterConfig.custom_condition.replace(/\\$item/g, 'item'));\n    } catch (e) {\n      console.warn('Custom filter condition error:', e.message);\n      return true;\n    }\n  }\n};\n\n// Apply filters\nconst filteredItems = items.filter(({json: item}) => {\n  return Object.values(filters).every(filterFn => filterFn(item));\n});\n\n// Log filtering results\nconsole.log(`Filtering complete: ${filteredItems.length}/${items.length} items passed filters`);\n\nreturn filteredItems;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "notes": "Configure filter_config in input data with desired filtering criteria"
+      }
+    },
+    "data_sorting": {
+      "name": "Data Sorting Code Node",
+      "description": "Multi-field data sorting with custom sort orders",
+      "category": "data_processing",
+      "node": {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "// Data sorting template\nconst items = $input.all();\nconst sortConfig = $json.sort_config || {};\n\n// Default sort configuration\nconst defaultSort = [\n  { field: 'created_at', order: 'desc' },\n  { field: 'priority', order: 'asc' }\n];\n\nconst sortFields = sortConfig.fields || defaultSort;\n\n// Helper function to get nested property value\nfunction getNestedValue(obj, path) {\n  return path.split('.').reduce((current, key) => current?.[key], obj);\n}\n\n// Helper function to compare values\nfunction compareValues(a, b, dataType = 'string') {\n  if (a === null || a === undefined) return 1;\n  if (b === null || b === undefined) return -1;\n  \n  switch (dataType) {\n    case 'number':\n      return parseFloat(a) - parseFloat(b);\n    case 'date':\n      return new Date(a) - new Date(b);\n    case 'string':\n    default:\n      return String(a).localeCompare(String(b));\n  }\n}\n\n// Sort items\nconst sortedItems = items.sort(({json: a}, {json: b}) => {\n  for (const sortField of sortFields) {\n    const { field, order = 'asc', dataType = 'string' } = sortField;\n    \n    const valueA = getNestedValue(a, field);\n    const valueB = getNestedValue(b, field);\n    \n    const comparison = compareValues(valueA, valueB, dataType);\n    \n    if (comparison !== 0) {\n      return order === 'desc' ? -comparison : comparison;\n    }\n  }\n  return 0;\n});\n\n// Add sort metadata\nconst result = sortedItems.map((item, index) => ({\n  ...item,\n  json: {\n    ...item.json,\n    sort_index: index + 1,\n    sorted_at: new Date().toISOString()\n  }\n}));\n\nconsole.log(`Sorted ${result.length} items by:`, sortFields.map(f => `${f.field} (${f.order})`).join(', '));\n\nreturn result;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "notes": "Configure sort_config with fields array containing field, order, and dataType"
+      }
+    },
+    "data_deduplication": {
+      "name": "Data Deduplication Code Node",
+      "description": "Remove duplicate records based on specified fields",
+      "category": "data_processing",
+      "node": {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "// Data deduplication template\nconst items = $input.all();\nconst dedupeConfig = $json.dedupe_config || {};\n\n// Configuration\nconst keyFields = dedupeConfig.key_fields || ['id', 'email'];\nconst strategy = dedupeConfig.strategy || 'keep_first'; // 'keep_first', 'keep_last', 'keep_newest'\nconst dateField = dedupeConfig.date_field || 'created_at';\n\n// Create deduplication map\nconst dedupeMap = new Map();\nconst duplicates = [];\n\nitems.forEach((item, index) => {\n  const data = item.json;\n  \n  // Generate composite key from specified fields\n  const key = keyFields\n    .map(field => String(data[field] || '').toLowerCase().trim())\n    .join('|');\n  \n  if (dedupeMap.has(key)) {\n    // Duplicate found\n    const existing = dedupeMap.get(key);\n    duplicates.push({\n      duplicate_key: key,\n      existing_index: existing.index,\n      duplicate_index: index,\n      existing_data: existing.item.json,\n      duplicate_data: data\n    });\n    \n    // Apply deduplication strategy\n    switch (strategy) {\n      case 'keep_last':\n        dedupeMap.set(key, { item, index });\n        break;\n      case 'keep_newest':\n        const existingDate = new Date(existing.item.json[dateField] || 0);\n        const currentDate = new Date(data[dateField] || 0);\n        if (currentDate > existingDate) {\n          dedupeMap.set(key, { item, index });\n        }\n        break;\n      case 'keep_first':\n      default:\n        // Keep existing, do nothing\n        break;\n    }\n  } else {\n    // First occurrence\n    dedupeMap.set(key, { item, index });\n  }\n});\n\n// Get deduplicated results\nconst uniqueItems = Array.from(dedupeMap.values())\n  .sort((a, b) => a.index - b.index) // Maintain original order\n  .map(({item}) => ({\n    ...item,\n    json: {\n      ...item.json,\n      is_deduplicated: true,\n      dedupe_processed_at: new Date().toISOString()\n    }\n  }));\n\n// Log deduplication results\nconsole.log(`Deduplication complete: ${uniqueItems.length}/${items.length} unique items, ${duplicates.length} duplicates removed`);\nconsole.log(`Strategy: ${strategy}, Key fields: ${keyFields.join(', ')}`);\n\n// Store duplicate information for analysis\n$workflow.staticData.lastDeduplication = {\n  total_input: items.length,\n  unique_output: uniqueItems.length,\n  duplicates_removed: duplicates.length,\n  duplicates: duplicates,\n  processed_at: new Date().toISOString()\n};\n\nreturn uniqueItems;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "notes": "Configure dedupe_config with key_fields, strategy, and date_field"
+      }
+    },
+    "json_parser": {
+      "name": "JSON Parser and Flattener",
+      "description": "Parse JSON strings and flatten nested objects",
+      "category": "data_processing",
+      "node": {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "// JSON parsing and flattening template\nconst items = $input.all();\nconst config = $json.parser_config || {};\n\n// Configuration\nconst jsonField = config.json_field || 'data';\nconst flattenNested = config.flatten_nested || false;\nconst maxDepth = config.max_depth || 3;\nconst separator = config.separator || '_';\n\n// Helper function to flatten object\nfunction flattenObject(obj, prefix = '', depth = 0) {\n  if (depth > maxDepth) return { [prefix.slice(0, -separator.length)]: obj };\n  \n  const flattened = {};\n  \n  for (const [key, value] of Object.entries(obj)) {\n    const newKey = prefix + key;\n    \n    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {\n      if (flattenNested) {\n        Object.assign(flattened, flattenObject(value, newKey + separator, depth + 1));\n      } else {\n        flattened[newKey] = value;\n      }\n    } else {\n      flattened[newKey] = value;\n    }\n  }\n  \n  return flattened;\n}\n\n// Process items\nconst processedItems = items.map((item, index) => {\n  const data = item.json;\n  let parsedData = {};\n  let parseErrors = [];\n  \n  try {\n    // Parse JSON field if it exists and is a string\n    if (data[jsonField] && typeof data[jsonField] === 'string') {\n      parsedData = JSON.parse(data[jsonField]);\n    } else if (data[jsonField] && typeof data[jsonField] === 'object') {\n      parsedData = data[jsonField];\n    }\n    \n    // Flatten if requested\n    if (flattenNested && typeof parsedData === 'object') {\n      parsedData = flattenObject(parsedData);\n    }\n    \n  } catch (error) {\n    parseErrors.push({\n      field: jsonField,\n      error: error.message,\n      input: data[jsonField]\n    });\n    console.warn(`JSON parse error for item ${index}:`, error.message);\n  }\n  \n  // Combine original data with parsed data\n  const result = {\n    ...data,\n    ...parsedData,\n    parse_metadata: {\n      parsed_successfully: parseErrors.length === 0,\n      parse_errors: parseErrors,\n      flattened: flattenNested,\n      processed_at: new Date().toISOString()\n    }\n  };\n  \n  // Remove original JSON field if successfully parsed\n  if (parseErrors.length === 0 && config.remove_source_field) {\n    delete result[jsonField];\n  }\n  \n  return { json: result };\n});\n\nconst successCount = processedItems.filter(item => item.json.parse_metadata.parsed_successfully).length;\nconsole.log(`JSON parsing complete: ${successCount}/${items.length} items parsed successfully`);\n\nreturn processedItems;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "notes": "Configure parser_config with json_field, flatten_nested, max_depth, separator"
+      }
+    }
+  },
+  "usage_guidelines": {
+    "transformation_strategy": {
+      "set_node": "Use for simple field assignments and basic transformations",
+      "code_node": "Use for complex logic, calculations, and custom transformations",
+      "function_node": "Use for reusable transformation functions across workflows",
+      "expression_editor": "Use for inline expressions within other node parameters"
+    },
+    "batching_strategy": {
+      "memory_management": "Use batching for large datasets to prevent memory overflow",
+      "api_rate_limits": "Batch API requests to respect rate limiting constraints",
+      "database_operations": "Batch database operations for better performance",
+      "processing_time": "Use smaller batches for time-sensitive operations"
+    },
+    "data_quality": {
+      "validation": "Always validate data before transformation",
+      "error_handling": "Implement error handling for transformation failures",
+      "logging": "Log transformation statistics and errors for monitoring",
+      "rollback": "Maintain original data for rollback scenarios"
+    },
+    "performance_optimization": {
+      "parallel_processing": "Use merge nodes for parallel data processing",
+      "streaming": "Process data in streams for real-time scenarios",
+      "caching": "Cache transformation results when appropriate",
+      "indexing": "Index frequently accessed fields for faster lookups"
+    },
+    "monitoring": {
+      "metrics": "Track processing volume, success rates, and performance",
+      "alerting": "Set up alerts for transformation failures and anomalies",
+      "debugging": "Include debug information in transformation outputs",
+      "auditing": "Maintain audit trails for data transformation processes"
+    }
+  }
+}

@@ -1,0 +1,379 @@
+{
+  "integration_nodes": {
+    "http_request_with_retry": {
+      "name": "HTTP Request with Retry Logic",
+      "description": "HTTP request node with comprehensive error handling and retry configuration",
+      "category": "integration",
+      "node": {
+        "parameters": {
+          "url": "https://api.example.com/endpoint",
+          "method": "POST",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "bodyContentType": "json",
+          "jsonParameters": true,
+          "options": {
+            "timeout": 30000,
+            "retry": {
+              "enabled": true,
+              "maxTries": 3,
+              "waitBetweenTries": 2000
+            },
+            "response": {
+              "fullResponse": false,
+              "neverError": false
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "notes": "Configure URL, authentication, and request body as needed"
+      }
+    },
+    "rest_api_client": {
+      "name": "REST API Client Template",
+      "description": "Comprehensive REST API client with standard HTTP methods",
+      "category": "integration",
+      "node": {
+        "parameters": {
+          "url": "{{ $json.base_url || 'https://api.example.com' }}/{{ $json.endpoint }}",
+          "method": "{{ $json.http_method || 'GET' }}",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Accept",
+                "value": "application/json"
+              },
+              {
+                "name": "User-Agent",
+                "value": "n8n-workflow/1.0"
+              },
+              {
+                "name": "X-Request-ID",
+                "value": "{{ $execution.id }}"
+              }
+            ]
+          },
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": "{{ $json.query_params || [] }}"
+          },
+          "sendBody": true,
+          "bodyContentType": "json",
+          "jsonParameters": true,
+          "bodyParametersJson": "{{ $json.request_body || {} }}",
+          "options": {
+            "timeout": 30000,
+            "retry": {
+              "enabled": true,
+              "maxTries": 3,
+              "waitBetweenTries": 2000
+            },
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "notes": "Dynamic REST client - configure via input data"
+      }
+    },
+    "graphql_client": {
+      "name": "GraphQL Client Template",
+      "description": "GraphQL query and mutation client with error handling",
+      "category": "integration",
+      "node": {
+        "parameters": {
+          "url": "{{ $json.graphql_endpoint || 'https://api.example.com/graphql' }}",
+          "method": "POST",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "bodyContentType": "json",
+          "jsonParameters": true,
+          "bodyParametersJson": {
+            "query": "{{ $json.graphql_query }}",
+            "variables": "{{ $json.graphql_variables || {} }}",
+            "operationName": "{{ $json.operation_name || null }}"
+          },
+          "options": {
+            "timeout": 30000,
+            "retry": {
+              "enabled": true,
+              "maxTries": 2,
+              "waitBetweenTries": 1000
+            },
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "notes": "Set graphql_query and graphql_variables in input data"
+      }
+    },
+    "oauth2_api_client": {
+      "name": "OAuth2 API Client",
+      "description": "API client with OAuth2 authentication and token refresh",
+      "category": "integration",
+      "node": {
+        "parameters": {
+          "url": "{{ $json.api_url }}",
+          "method": "{{ $json.http_method || 'GET' }}",
+          "authentication": "oauth2",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": "{{ $json.http_method !== 'GET' }}",
+          "bodyContentType": "json",
+          "jsonParameters": true,
+          "bodyParametersJson": "{{ $json.request_body || {} }}",
+          "options": {
+            "timeout": 45000,
+            "retry": {
+              "enabled": true,
+              "maxTries": 3,
+              "waitBetweenTries": 3000
+            },
+            "response": {
+              "fullResponse": true,
+              "neverError": false
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "credentials": {
+          "oAuth2Api": {
+            "id": "oauth2-main",
+            "name": "Main OAuth2 Credential"
+          }
+        },
+        "notes": "Configure OAuth2 credentials and set api_url in input data"
+      }
+    },
+    "webhook_sender": {
+      "name": "Webhook Sender Template",
+      "description": "Send webhook notifications with signature verification",
+      "category": "integration",
+      "node": {
+        "parameters": {
+          "url": "{{ $json.webhook_url }}",
+          "method": "POST",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "User-Agent",
+                "value": "n8n-webhook-sender/1.0"
+              },
+              {
+                "name": "X-Webhook-Signature",
+                "value": "{{ $json.webhook_signature || '' }}"
+              },
+              {
+                "name": "X-Webhook-Timestamp",
+                "value": "{{ Math.floor(Date.now() / 1000) }}"
+              },
+              {
+                "name": "X-Webhook-Event",
+                "value": "{{ $json.event_type || 'notification' }}"
+              }
+            ]
+          },
+          "sendBody": true,
+          "bodyContentType": "json",
+          "jsonParameters": true,
+          "bodyParametersJson": {
+            "event": "{{ $json.event_type || 'notification' }}",
+            "timestamp": "{{ new Date().toISOString() }}",
+            "source": "{{ $workflow.name }}",
+            "execution_id": "{{ $execution.id }}",
+            "data": "{{ $json.webhook_data || {} }}"
+          },
+          "options": {
+            "timeout": 15000,
+            "retry": {
+              "enabled": true,
+              "maxTries": 3,
+              "waitBetweenTries": 2000
+            },
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "notes": "Set webhook_url and webhook_data in input data"
+      }
+    },
+    "api_rate_limiter": {
+      "name": "API Rate Limiter Code Node",
+      "description": "Rate limiting logic for API requests",
+      "category": "integration",
+      "node": {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "// API rate limiting template\nconst items = $input.all();\nconst rateLimitConfig = $json.rate_limit_config || {};\n\n// Configuration\nconst requestsPerMinute = rateLimitConfig.requests_per_minute || 60;\nconst requestsPerHour = rateLimitConfig.requests_per_hour || 1000;\nconst burstLimit = rateLimitConfig.burst_limit || 10;\nconst apiKey = rateLimitConfig.api_key || 'default';\n\n// Get current time windows\nconst now = Date.now();\nconst currentMinute = Math.floor(now / 60000);\nconst currentHour = Math.floor(now / 3600000);\n\n// Initialize or get rate limit data from static storage\nif (!$workflow.staticData.rateLimits) {\n  $workflow.staticData.rateLimits = {};\n}\n\nconst rateLimits = $workflow.staticData.rateLimits;\nif (!rateLimits[apiKey]) {\n  rateLimits[apiKey] = {\n    minute: { window: currentMinute, count: 0 },\n    hour: { window: currentHour, count: 0 },\n    burst: { requests: [], lastReset: now }\n  };\n}\n\nconst limits = rateLimits[apiKey];\n\n// Reset counters if time windows have changed\nif (limits.minute.window !== currentMinute) {\n  limits.minute = { window: currentMinute, count: 0 };\n}\nif (limits.hour.window !== currentHour) {\n  limits.hour = { window: currentHour, count: 0 };\n}\n\n// Clean burst requests older than 1 minute\nconst oneMinuteAgo = now - 60000;\nlimits.burst.requests = limits.burst.requests.filter(time => time > oneMinuteAgo);\n\n// Process items with rate limiting\nconst allowedItems = [];\nconst rateLimitedItems = [];\n\nfor (const item of items) {\n  const canProceed = \n    limits.minute.count < requestsPerMinute &&\n    limits.hour.count < requestsPerHour &&\n    limits.burst.requests.length < burstLimit;\n  \n  if (canProceed) {\n    // Allow request\n    limits.minute.count++;\n    limits.hour.count++;\n    limits.burst.requests.push(now);\n    \n    allowedItems.push({\n      ...item,\n      json: {\n        ...item.json,\n        rate_limit_status: 'allowed',\n        remaining_minute: requestsPerMinute - limits.minute.count,\n        remaining_hour: requestsPerHour - limits.hour.count,\n        remaining_burst: burstLimit - limits.burst.requests.length\n      }\n    });\n  } else {\n    // Rate limit exceeded\n    const resetTime = Math.max(\n      (currentMinute + 1) * 60000, // Next minute\n      (currentHour + 1) * 3600000, // Next hour\n      oneMinuteAgo + 60000 // Burst window reset\n    );\n    \n    rateLimitedItems.push({\n      ...item,\n      json: {\n        ...item.json,\n        rate_limit_status: 'exceeded',\n        retry_after: Math.ceil((resetTime - now) / 1000),\n        limits_exceeded: {\n          minute: limits.minute.count >= requestsPerMinute,\n          hour: limits.hour.count >= requestsPerHour,\n          burst: limits.burst.requests.length >= burstLimit\n        }\n      }\n    });\n  }\n}\n\n// Log rate limiting results\nconsole.log(`Rate limiting: ${allowedItems.length} allowed, ${rateLimitedItems.length} rate-limited`);\nconsole.log(`Current usage - Minute: ${limits.minute.count}/${requestsPerMinute}, Hour: ${limits.hour.count}/${requestsPerHour}, Burst: ${limits.burst.requests.length}/${burstLimit}`);\n\n// Store rate-limited items for retry\nif (rateLimitedItems.length > 0) {\n  $workflow.staticData.rateLimitedQueue = rateLimitedItems;\n}\n\nreturn allowedItems;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "notes": "Configure rate_limit_config with requests_per_minute, requests_per_hour, burst_limit"
+      }
+    },
+    "api_response_parser": {
+      "name": "API Response Parser",
+      "description": "Parse and normalize API responses with error handling",
+      "category": "integration",
+      "node": {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "// API response parser template\nconst items = $input.all();\nconst parserConfig = $json.parser_config || {};\n\n// Configuration\nconst successCodes = parserConfig.success_codes || [200, 201, 202, 204];\nconst dataPath = parserConfig.data_path || 'data';\nconst errorPath = parserConfig.error_path || 'error';\nconst paginationConfig = parserConfig.pagination || {};\n\n// Process responses\nconst processedItems = items.map((item, index) => {\n  const response = item.json;\n  const isHttpResponse = response.statusCode !== undefined;\n  \n  let parsedResponse = {\n    success: false,\n    data: null,\n    error: null,\n    metadata: {\n      response_index: index,\n      processed_at: new Date().toISOString(),\n      original_response: response\n    }\n  };\n  \n  if (isHttpResponse) {\n    // Handle HTTP response\n    const statusCode = response.statusCode;\n    const isSuccess = successCodes.includes(statusCode);\n    const body = typeof response.body === 'string' ? \n      (() => {\n        try { return JSON.parse(response.body); }\n        catch { return response.body; }\n      })() : response.body;\n    \n    parsedResponse.success = isSuccess;\n    parsedResponse.metadata.status_code = statusCode;\n    parsedResponse.metadata.headers = response.headers;\n    \n    if (isSuccess) {\n      // Extract data from successful response\n      parsedResponse.data = dataPath.split('.').reduce((obj, key) => obj?.[key], body) || body;\n      \n      // Handle pagination\n      if (paginationConfig.enabled && body) {\n        parsedResponse.pagination = {\n          current_page: body[paginationConfig.page_field || 'page'] || 1,\n          total_pages: body[paginationConfig.total_pages_field || 'total_pages'] || 1,\n          total_items: body[paginationConfig.total_items_field || 'total'] || 0,\n          has_more: body[paginationConfig.has_more_field || 'has_more'] || false\n        };\n      }\n    } else {\n      // Extract error from failed response\n      parsedResponse.error = {\n        code: statusCode,\n        message: errorPath.split('.').reduce((obj, key) => obj?.[key], body) || `HTTP ${statusCode}`,\n        details: body\n      };\n    }\n  } else {\n    // Handle direct API response (non-HTTP)\n    if (response.error) {\n      parsedResponse.error = {\n        message: response.error.message || 'Unknown error',\n        code: response.error.code || 'UNKNOWN',\n        details: response.error\n      };\n    } else {\n      parsedResponse.success = true;\n      parsedResponse.data = response;\n    }\n  }\n  \n  // Add retry information for failed requests\n  if (!parsedResponse.success && parsedResponse.error) {\n    const statusCode = parsedResponse.metadata.status_code;\n    parsedResponse.retry_info = {\n      should_retry: statusCode >= 500 || statusCode === 429 || statusCode === 408,\n      retry_after: parsedResponse.metadata.headers?.['retry-after'] || null,\n      max_retries: parserConfig.max_retries || 3\n    };\n  }\n  \n  return { json: parsedResponse };\n});\n\n// Generate summary\nconst summary = {\n  total_responses: items.length,\n  successful: processedItems.filter(item => item.json.success).length,\n  failed: processedItems.filter(item => !item.json.success).length,\n  retryable: processedItems.filter(item => item.json.retry_info?.should_retry).length\n};\n\nconsole.log('API Response parsing summary:', summary);\n\nreturn processedItems;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "notes": "Configure parser_config with success_codes, data_path, error_path, pagination settings"
+      }
+    },
+    "file_upload_client": {
+      "name": "File Upload API Client",
+      "description": "Upload files to API endpoints with multipart form data",
+      "category": "integration",
+      "node": {
+        "parameters": {
+          "url": "{{ $json.upload_url }}",
+          "method": "POST",
+          "authentication": "genericCredentialType",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "bodyContentType": "multipart-form-data",
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "file",
+                "value": "={{ $binary.data }}"
+              },
+              {
+                "name": "filename",
+                "value": "{{ $json.filename || 'upload.txt' }}"
+              },
+              {
+                "name": "metadata",
+                "value": "{{ JSON.stringify($json.file_metadata || {}) }}"
+              }
+            ]
+          },
+          "options": {
+            "timeout": 120000,
+            "retry": {
+              "enabled": true,
+              "maxTries": 2,
+              "waitBetweenTries": 5000
+            },
+            "response": {
+              "fullResponse": true,
+              "neverError": false
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "notes": "Set upload_url in input data and ensure binary data is available"
+      }
+    }
+  },
+  "usage_guidelines": {
+    "authentication": {
+      "api_keys": "Use secure credential storage for API keys and tokens",
+      "oauth2": "Implement proper OAuth2 flow with token refresh handling",
+      "jwt": "Handle JWT token expiration and renewal automatically",
+      "basic_auth": "Avoid basic auth for production APIs when possible"
+    },
+    "error_handling": {
+      "http_errors": "Handle all HTTP error status codes appropriately",
+      "network_errors": "Implement retry logic for network connectivity issues",
+      "timeout_handling": "Set appropriate timeouts based on API characteristics",
+      "rate_limiting": "Respect API rate limits and implement backoff strategies"
+    },
+    "performance": {
+      "connection_pooling": "Use connection pooling for high-volume API calls",
+      "caching": "Cache API responses when appropriate to reduce load",
+      "batching": "Batch API requests when supported by the target API",
+      "compression": "Use compression for large request/response payloads"
+    },
+    "monitoring": {
+      "request_logging": "Log API requests and responses for debugging",
+      "metrics_tracking": "Track API performance metrics and success rates",
+      "alerting": "Set up alerts for API failures and performance degradation",
+      "health_checks": "Implement regular health checks for external APIs"
+    },
+    "security": {
+      "data_validation": "Validate all data sent to and received from APIs",
+      "input_sanitization": "Sanitize user input before sending to external APIs",
+      "sensitive_data": "Never log sensitive data in API requests/responses",
+      "ssl_verification": "Always use SSL/TLS and verify certificates"
+    }
+  }
+}

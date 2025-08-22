@@ -256,7 +256,13 @@
   "workflow_patterns": {
     "basic_webhook_to_email": {
       "description": "Simple webhook trigger to email notification pattern",
-      "nodes": ["webhook_trigger", "data_transformation", "email_notification", "error_handler"],
+      "template_files": ["core-nodes.json", "data-processing-nodes.json", "communication-nodes.json"],
+      "nodes": [
+        {"template": "core-nodes.json", "node": "webhook_trigger"},
+        {"template": "data-processing-nodes.json", "node": "data_transformation"},
+        {"template": "communication-nodes.json", "node": "email_notification"},
+        {"template": "core-nodes.json", "node": "error_handler"}
+      ],
       "connections": {
         "webhook_trigger": ["data_transformation"],
         "data_transformation": ["email_notification"],
@@ -268,7 +274,13 @@
     },
     "api_to_database": {
       "description": "API data fetching to database storage pattern",
-      "nodes": ["http_request_with_retry", "data_validation", "database_upsert", "error_handler"],
+      "template_files": ["integration-nodes.json", "core-nodes.json", "database-nodes.json"],
+      "nodes": [
+        {"template": "integration-nodes.json", "node": "http_request_with_retry"},
+        {"template": "core-nodes.json", "node": "data_validation"},
+        {"template": "database-nodes.json", "node": "database_upsert"},
+        {"template": "core-nodes.json", "node": "error_handler"}
+      ],
       "connections": {
         "http_request_with_retry": ["data_validation"],
         "data_validation": ["database_upsert"],
@@ -280,7 +292,13 @@
     },
     "conditional_processing": {
       "description": "Conditional routing with different processing paths",
-      "nodes": ["webhook_trigger", "conditional_switch", "data_transformation", "merge_results"],
+      "template_files": ["core-nodes.json", "data-processing-nodes.json"],
+      "nodes": [
+        {"template": "core-nodes.json", "node": "webhook_trigger"},
+        {"template": "core-nodes.json", "node": "conditional_switch"},
+        {"template": "data-processing-nodes.json", "node": "data_transformation"},
+        {"template": "data-processing-nodes.json", "node": "merge_results"}
+      ],
       "connections": {
         "webhook_trigger": ["conditional_switch"],
         "conditional_switch": {
@@ -293,7 +311,14 @@
     },
     "batch_processing": {
       "description": "Large dataset processing with batching",
-      "nodes": ["webhook_trigger", "data_validation", "batch_processor", "data_transformation", "database_upsert"],
+      "template_files": ["core-nodes.json", "data-processing-nodes.json", "database-nodes.json"],
+      "nodes": [
+        {"template": "core-nodes.json", "node": "webhook_trigger"},
+        {"template": "core-nodes.json", "node": "data_validation"},
+        {"template": "data-processing-nodes.json", "node": "batch_processor"},
+        {"template": "data-processing-nodes.json", "node": "data_transformation"},
+        {"template": "database-nodes.json", "node": "database_upsert"}
+      ],
       "connections": {
         "webhook_trigger": ["data_validation"],
         "data_validation": ["batch_processor"],
