@@ -1,0 +1,368 @@
+{
+  "meta": {
+    "instanceId": "data-processing-example",
+    "templateName": "Data Processing Pipeline Example",
+    "templateVersion": "1.0.0",
+    "description": "Complex data processing with validation, transformation, and multiple output formats"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "path": "data-upload",
+        "options": {
+          "binaryPropertyName": "file"
+        }
+      },
+      "id": "file-upload-trigger",
+      "name": "File Upload Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 400],
+      "webhookId": "data-processing-upload"
+    },
+    {
+      "parameters": {
+        "mode": "autoDetectColumnNames",
+        "options": {
+          "delimiter": ",",
+          "enableBOM": true
+        }
+      },
+      "id": "parse-csv",
+      "name": "Parse CSV",
+      "type": "n8n-nodes-base.csv",
+      "typeVersion": 2,
+      "position": [460, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Data validation and cleaning\nconst items = $input.all();\nconst validatedItems = [];\nconst errors = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const item = items[i].json;\n  const rowNum = i + 1;\n  const validation = {\n    row: rowNum,\n    errors: [],\n    warnings: []\n  };\n  \n  // Validate required fields\n  if (!item.email || item.email.trim() === '') {\n    validation.errors.push('Email is required');\n  } else if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(item.email)) {\n    validation.errors.push('Invalid email format');\n  }\n  \n  if (!item.name || item.name.trim() === '') {\n    validation.errors.push('Name is required');\n  }\n  \n  // Clean and normalize data\n  const cleanedItem = {\n    ...item,\n    email: item.email ? item.email.toLowerCase().trim() : '',\n    name: item.name ? item.name.trim() : '',\n    phone: item.phone ? item.phone.replace(/[^\\d]/g, '') : '',\n    created_at: new Date().toISOString(),\n    row_number: rowNum\n  };\n  \n  if (validation.errors.length === 0) {\n    validatedItems.push({json: cleanedItem});\n  } else {\n    errors.push({json: {...cleanedItem, validation_errors: validation.errors}});\n  }\n}\n\nconsole.log(`Validation complete: ${validatedItems.length} valid, ${errors.length} invalid`);\n\n// Store errors in workflow static data for later use\n$workflow.staticData.validationErrors = errors;\n\nreturn validatedItems;"
+      },
+      "id": "validate-data",
+      "name": "Validate Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "has_valid_data",
+              "leftValue": "={{ $input.all().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ]
+        }
+      },
+      "id": "check-valid-data",
+      "name": "Check Valid Data",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "batchSize": 50,
+        "options": {}
+      },
+      "id": "split-batches",
+      "name": "Split Into Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Enrich data with additional processing\nconst items = $input.all();\nconst enrichedItems = items.map((item, index) => {\n  const data = item.json;\n  \n  // Add computed fields\n  const enriched = {\n    ...data,\n    id: `${Date.now()}-${index}`,\n    email_domain: data.email.split('@')[1],\n    name_parts: {\n      first: data.name.split(' ')[0],\n      last: data.name.split(' ').slice(1).join(' ')\n    },\n    phone_formatted: data.phone ? `(${data.phone.slice(0,3)}) ${data.phone.slice(3,6)}-${data.phone.slice(6)}` : '',\n    batch_id: $('Split Into Batches').item(0).json.batchIndex || 0,\n    processed_at: new Date().toISOString()\n  };\n  \n  return {json: enriched};\n});\n\nreturn enrichedItems;"
+      },
+      "id": "enrich-data",
+      "name": "Enrich Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "processed_contacts",
+        "columns": "id, name, email, phone, email_domain, batch_id, created_at, processed_at",
+        "additionalFields": {
+          "mode": "independentColumns"
+        }
+      },
+      "id": "store-in-database",
+      "name": "Store in Database", 
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1560, 200],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "Main Database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toFile",
+        "fileFormat": "json",
+        "options": {
+          "fileName": "processed-contacts-{{ new Date().toISOString().split('T')[0] }}.json"
+        }
+      },
+      "id": "export-json",
+      "name": "Export to JSON",
+      "type": "n8n-nodes-base.csv",
+      "typeVersion": 2,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "operation": "toFile", 
+        "fileFormat": "csv",
+        "options": {
+          "fileName": "processed-contacts-{{ new Date().toISOString().split('T')[0] }}.csv",
+          "columns": "id,name,email,phone,email_domain,processed_at"
+        }
+      },
+      "id": "export-csv",
+      "name": "Export to CSV",
+      "type": "n8n-nodes-base.csv", 
+      "typeVersion": 2,
+      "position": [1560, 400]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "merge-exports",
+      "name": "Merge Exports",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Create processing summary\nconst allBatches = $('Split Into Batches').all();\nconst validationErrors = $workflow.staticData.validationErrors || [];\nconst totalProcessed = $('Enrich Data').all().length;\n\nconst summary = {\n  workflow: 'data-processing',\n  timestamp: new Date().toISOString(),\n  total_rows: allBatches.length + validationErrors.length,\n  valid_rows: totalProcessed,\n  invalid_rows: validationErrors.length,\n  batches_processed: Math.max(...allBatches.map(b => b.json.batchIndex || 0)) + 1,\n  exports_created: {\n    database: true,\n    json_file: true,\n    csv_file: true\n  },\n  validation_errors: validationErrors.slice(0, 5).map(e => ({\n    row: e.json.row_number,\n    errors: e.json.validation_errors\n  })),\n  processing_duration: 'calculated_in_summary'\n};\n\nconsole.log('Data Processing Summary:', JSON.stringify(summary, null, 2));\n\nreturn [{json: summary}];"
+      },
+      "id": "create-summary",
+      "name": "Create Processing Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "data-processor@example.com",
+        "toEmail": "admin@example.com",
+        "subject": "Data Processing Complete - {{ $json.valid_rows }} records processed",
+        "message": "Data Processing Summary:\\n\\nTimestamp: {{ $json.timestamp }}\\nTotal Rows: {{ $json.total_rows }}\\nValid Rows: {{ $json.valid_rows }}\\nInvalid Rows: {{ $json.invalid_rows }}\\nBatches Processed: {{ $json.batches_processed }}\\n\\nExports Created:\\n- Database: {{ $json.exports_created.database }}\\n- JSON File: {{ $json.exports_created.json_file }}\\n- CSV File: {{ $json.exports_created.csv_file }}\\n\\n{% if $json.validation_errors.length > 0 %}Sample Validation Errors:\\n{% for error in $json.validation_errors %}Row {{ error.row }}: {{ error.errors.join(', ') }}\\n{% endfor %}{% endif %}",
+        "options": {
+          "attachments": "binary",
+          "attachmentsBinary": [
+            {
+              "property": "data"
+            }
+          ]
+        }
+      },
+      "id": "send-completion-email",
+      "name": "Send Completion Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [2220, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle no valid data scenario\nconst validationErrors = $workflow.staticData.validationErrors || [];\n\nconst summary = {\n  workflow: 'data-processing',\n  timestamp: new Date().toISOString(),\n  status: 'no_valid_data',\n  total_rows: validationErrors.length,\n  valid_rows: 0,\n  invalid_rows: validationErrors.length,\n  message: 'No valid data to process',\n  sample_errors: validationErrors.slice(0, 10)\n};\n\nconsole.log('No valid data to process:', JSON.stringify(summary, null, 2));\n\nreturn [{json: summary}];"
+      },
+      "id": "no-valid-data-handler",
+      "name": "No Valid Data Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 500]
+    }
+  ],
+  "connections": {
+    "File Upload Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse CSV": {
+      "main": [
+        [
+          {
+            "node": "Validate Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Data": {
+      "main": [
+        [
+          {
+            "node": "Check Valid Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Valid Data": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Valid Data Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Batches": {
+      "main": [
+        [
+          {
+            "node": "Enrich Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich Data": {
+      "main": [
+        [
+          {
+            "node": "Store in Database",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Export to JSON",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Export to CSV",
+            "type": "main", 
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store in Database": {
+      "main": [
+        [
+          {
+            "node": "Merge Exports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Export to JSON": {
+      "main": [
+        [
+          {
+            "node": "Merge Exports",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Export to CSV": {
+      "main": [
+        [
+          {
+            "node": "Merge Exports",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge Exports": {
+      "main": [
+        [
+          {
+            "node": "Create Processing Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Processing Summary": {
+      "main": [
+        [
+          {
+            "node": "Send Completion Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "",
+    "timezone": "America/New_York",
+    "executionTimeout": 3600
+  },
+  "staticData": {},
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "data-processing",
+      "name": "data-processing"
+    },
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "validation",
+      "name": "validation"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z", 
+  "versionId": "data-processing-v1.0.0"
+}

@@ -1,0 +1,331 @@
+{
+  "meta": {
+    "instanceId": "api-integration-example",
+    "templateName": "API Integration Example",
+    "templateVersion": "1.0.0",
+    "description": "Fetch data from external API, process and store in database"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "value": "0 */6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Every 6 Hours", 
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.com/users",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth", 
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "enabled": true,
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        }
+      },
+      "id": "fetch-users",
+      "name": "Fetch Users",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "response_check",
+              "leftValue": "={{ $json.users }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty"
+              }
+            }
+          ]
+        }
+      },
+      "id": "check-response",
+      "name": "Check Response",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "users",
+        "options": {}
+      },
+      "id": "split-users",
+      "name": "Split Users",
+      "type": "n8n-nodes-base.splitOut", 
+      "typeVersion": 1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "user_id",
+              "name": "user_id",
+              "type": "number",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "id": "full_name", 
+              "name": "full_name",
+              "type": "string",
+              "value": "={{ $json.first_name + ' ' + $json.last_name }}"
+            },
+            {
+              "id": "email_domain",
+              "name": "email_domain", 
+              "type": "string",
+              "value": "={{ $json.email.split('@')[1] }}"
+            },
+            {
+              "id": "processed_at",
+              "name": "processed_at",
+              "type": "string",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        }
+      },
+      "id": "transform-user",
+      "name": "Transform User",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "users",
+        "columns": "user_id, full_name, email, email_domain, processed_at",
+        "additionalFields": {
+          "mode": "independentColumns",
+          "values": {
+            "user_id": "={{ $json.user_id }}",
+            "full_name": "={{ $json.full_name }}",
+            "email": "={{ $json.email }}",
+            "email_domain": "={{ $json.email_domain }}",
+            "processed_at": "={{ $json.processed_at }}"
+          }
+        },
+        "options": {
+          "queryReplacement": "ON CONFLICT (user_id) DO UPDATE SET full_name = EXCLUDED.full_name, email = EXCLUDED.email, email_domain = EXCLUDED.email_domain, processed_at = EXCLUDED.processed_at"
+        }
+      },
+      "id": "store-user",
+      "name": "Store User",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1340, 200],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "Main Database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate results and create summary\nconst allItems = $input.all();\nconst summary = {\n  workflow: 'api-integration',\n  execution_time: new Date().toISOString(),\n  total_users_processed: allItems.length,\n  successful_inserts: allItems.filter(item => !item.json.error).length,\n  failed_inserts: allItems.filter(item => item.json.error).length,\n  sample_users: allItems.slice(0, 3).map(item => item.json.full_name)\n};\n\nconsole.log('API Integration Summary:', JSON.stringify(summary, null, 2));\n\nreturn [{json: summary}];"
+      },
+      "id": "create-summary",
+      "name": "Create Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2, 
+      "position": [1560, 200]
+    },
+    {
+      "parameters": {
+        "fromEmail": "system@example.com",
+        "toEmail": "admin@example.com",
+        "subject": "API Integration Complete - {{ $json.total_users_processed }} users processed",
+        "message": "API Integration Summary:\n\nExecution Time: {{ $json.execution_time }}\nTotal Users Processed: {{ $json.total_users_processed }}\nSuccessful Inserts: {{ $json.successful_inserts }}\nFailed Inserts: {{ $json.failed_inserts }}\n\nSample Users: {{ $json.sample_users.join(', ') }}"
+      },
+      "id": "send-summary",
+      "name": "Send Summary",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1780, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle no users scenario\nconst logEntry = {\n  workflow: 'api-integration',\n  timestamp: new Date().toISOString(),\n  status: 'completed_no_data',\n  message: 'No users returned from API'\n};\n\nconsole.log('No users to process:', JSON.stringify(logEntry, null, 2));\n\nreturn [{json: {\n  status: 'completed',\n  message: 'No new users to process',\n  users_processed: 0\n}}];"
+      },
+      "id": "no-users-handler", 
+      "name": "No Users Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle API errors\nconst error = $input.item(0).json;\nconst logEntry = {\n  workflow: 'api-integration',\n  timestamp: new Date().toISOString(),\n  status: 'api_error',\n  error_message: error.message || 'API request failed',\n  http_code: error.httpCode || 'unknown',\n  error_details: error\n};\n\nconsole.error('API Integration Error:', JSON.stringify(logEntry, null, 2));\n\nreturn [{json: {\n  status: 'error',\n  message: 'API integration failed',\n  error: logEntry\n}}];"
+      },
+      "id": "api-error-handler",
+      "name": "API Error Handler", 
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 500]
+    }
+  ],
+  "connections": {
+    "Every 6 Hours": {
+      "main": [
+        [
+          {
+            "node": "Fetch Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Users": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main", 
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "API Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Response": {
+      "main": [
+        [
+          {
+            "node": "Split Users",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Users Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Users": {
+      "main": [
+        [
+          {
+            "node": "Transform User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform User": {
+      "main": [
+        [
+          {
+            "node": "Store User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store User": {
+      "main": [
+        [
+          {
+            "node": "Create Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Summary": {
+      "main": [
+        [
+          {
+            "node": "Send Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "",
+    "timezone": "America/New_York",
+    "executionTimeout": 1800
+  },
+  "staticData": {},
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "api-integration",
+      "name": "api-integration"
+    },
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z", 
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "scheduled",
+      "name": "scheduled"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "api-integration-v1.0.0"
+}

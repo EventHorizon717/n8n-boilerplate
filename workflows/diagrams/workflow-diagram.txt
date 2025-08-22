@@ -1,0 +1,111 @@
+n8n Workflow Template - ASCII Diagram
+=====================================
+
+Main Workflow Structure:
+========================
+
+[Trigger] ──────→ [Input Processing] ──────→ [Core Processing] ──────→ [Output Handling]
+    │                     │                        │                        │
+    │                     ↓                        ↓                        ↓
+    │              [Data Validation]        [Business Logic]        [Format Results]
+    │                     │                        │                        │
+    │                     ↓                        ↓                        ↓
+    │              [Input Cleaning]         [External APIs]          [Deliver Results]
+    │                     │                        │                        │
+    │                     ↓                        ↓                        ↓
+    │              [Standardization]       [Data Transform]        [Send Notifications]
+    │                                              │                        │
+    │                                              ↓                        ↓
+    │                                      [Conditional Logic]       [Store Results]
+    │
+    └─(Error)─→ [Error Handler] ──→ [Log Error] ──→ [Alert Admin] ──→ [Cleanup]
+
+
+Subsection Interaction:
+======================
+
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Data Input    │────→│   Processing    │────→│     Output      │
+│   Subsection    │    │   Subsection    │    │   Subsection    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ↓                       ↓                       ↓
+ [Webhook/Trigger]       [Business Logic]        [Email/Database]
+ [Data Validation]       [API Integration]       [File Storage]
+ [Input Cleaning]        [Calculations]          [Notifications]
+ [Standardization]       [Routing Logic]         [Reporting]
+
+
+Error Handling Flow:
+===================
+
+Any Node ──(Error)──→ [Error Detection] ──→ {Error Type?}
+                            │                    │
+                            ↓                    ├─[Retryable]──→ [Retry Logic] ──┐
+                     [Log Error Details]         │                               │
+                            │                    ├─[Fatal]──────→ [Alert Admin]  │
+                            ↓                    │                               │
+                     [Determine Severity]        └─[Warning]────→ [Log Warning]  │
+                            │                                                    │
+                            ↓                                                    │
+                     [Send Notifications] ←──────────────────────────────────────┘
+                            │
+                            ↓
+                     [Cleanup Resources]
+
+
+Data Flow Example:
+=================
+
+Input Data:
+┌─────────────────────────────┐
+│ {"user_id": 123,            │
+│  "action": "purchase",      │
+│  "amount": 99.99}           │
+└─────────────────────────────┘
+              │
+              ↓
+┌─────────────────────────────┐
+│ Validation & Cleaning       │
+│ • Check required fields     │
+│ • Validate data types       │
+│ • Sanitize input           │
+└─────────────────────────────┘
+              │
+              ↓
+┌─────────────────────────────┐
+│ Processing                  │
+│ • Lookup user details       │
+│ • Calculate taxes           │
+│ • Update inventory          │
+│ • Process payment           │
+└─────────────────────────────┘
+              │
+              ↓
+┌─────────────────────────────┐
+│ Output                      │
+│ • Generate receipt          │
+│ • Send confirmation email   │
+│ • Update customer record    │
+│ • Log transaction           │
+└─────────────────────────────┘
+
+
+Legend:
+=======
+[Node Name]     - n8n workflow node
+{Decision?}     - Conditional/Switch node
+(Error)         - Error path
+──→            - Data flow direction
+├─             - Branch point
+└─             - Branch end
+│              - Vertical connection
+─              - Horizontal connection
+
+Notes:
+======
+1. Replace template nodes with actual n8n nodes based on requirements
+2. Add authentication nodes where external APIs are used
+3. Include proper timeout and retry configurations
+4. Implement monitoring and alerting for production use
+5. Test each subsection independently before merging

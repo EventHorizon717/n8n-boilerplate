@@ -1,0 +1,265 @@
+{
+  "test_scenarios": {
+    "basic_user_data": [
+      {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "phone": "+1-555-123-4567",
+        "department": "Engineering",
+        "status": "active",
+        "created_at": "2024-01-15T10:30:00Z"
+      },
+      {
+        "id": 2,
+        "name": "Jane Smith",
+        "email": "jane.smith@company.com",
+        "phone": "+1-555-987-6543",
+        "department": "Marketing",
+        "status": "active",
+        "created_at": "2024-01-16T14:45:00Z"
+      },
+      {
+        "id": 3,
+        "name": "Bob Johnson",
+        "email": "bob.johnson@organization.org",
+        "phone": "+1-555-456-7890",
+        "department": "Sales",
+        "status": "inactive",
+        "created_at": "2024-01-17T09:15:00Z"
+      }
+    ],
+    "webhook_payloads": {
+      "simple_notification": {
+        "event": "user_created",
+        "timestamp": "2024-01-20T12:00:00Z",
+        "data": {
+          "user_id": 123,
+          "email": "newuser@example.com",
+          "source": "web_app"
+        }
+      },
+      "order_processing": {
+        "event": "order_placed",
+        "timestamp": "2024-01-20T15:30:00Z",
+        "data": {
+          "order_id": "ORD-2024-001",
+          "customer_id": 456,
+          "items": [
+            {
+              "product_id": "PROD-001",
+              "quantity": 2,
+              "price": 29.99
+            },
+            {
+              "product_id": "PROD-002", 
+              "quantity": 1,
+              "price": 49.99
+            }
+          ],
+          "total": 109.97,
+          "payment_method": "credit_card"
+        }
+      },
+      "api_integration": {
+        "event": "data_sync",
+        "timestamp": "2024-01-20T18:00:00Z",
+        "data": {
+          "sync_id": "SYNC-2024-001",
+          "source_system": "crm",
+          "records_count": 150,
+          "sync_type": "incremental"
+        }
+      }
+    },
+    "database_records": [
+      {
+        "customer_id": 1001,
+        "first_name": "Alice",
+        "last_name": "Williams",
+        "email": "alice.williams@test.com",
+        "subscription_type": "premium",
+        "signup_date": "2024-01-01",
+        "last_activity": "2024-01-19T16:22:00Z",
+        "preferences": {
+          "newsletter": true,
+          "notifications": true,
+          "theme": "dark"
+        }
+      },
+      {
+        "customer_id": 1002,
+        "first_name": "Charlie",
+        "last_name": "Brown",
+        "email": "charlie.brown@test.com",
+        "subscription_type": "basic",
+        "signup_date": "2024-01-05",
+        "last_activity": "2024-01-18T11:45:00Z",
+        "preferences": {
+          "newsletter": false,
+          "notifications": true,
+          "theme": "light"
+        }
+      }
+    ],
+    "csv_data": {
+      "headers": ["id", "name", "email", "phone", "department", "start_date"],
+      "rows": [
+        ["1", "Emma Davis", "emma.davis@company.com", "555-111-2222", "HR", "2024-01-10"],
+        ["2", "Michael Wilson", "michael.wilson@company.com", "555-333-4444", "Finance", "2024-01-12"],
+        ["3", "Sarah Martinez", "sarah.martinez@company.com", "555-555-6666", "Operations", "2024-01-14"]
+      ]
+    },
+    "api_responses": {
+      "user_list": {
+        "users": [
+          {
+            "id": 501,
+            "username": "testuser1",
+            "email": "testuser1@api.com",
+            "profile": {
+              "first_name": "Test",
+              "last_name": "User One",
+              "avatar": "https://example.com/avatar1.jpg"
+            },
+            "metadata": {
+              "last_login": "2024-01-19T08:30:00Z",
+              "login_count": 42,
+              "account_status": "verified"
+            }
+          },
+          {
+            "id": 502,
+            "username": "testuser2", 
+            "email": "testuser2@api.com",
+            "profile": {
+              "first_name": "Test",
+              "last_name": "User Two",
+              "avatar": "https://example.com/avatar2.jpg"
+            },
+            "metadata": {
+              "last_login": "2024-01-18T14:20:00Z",
+              "login_count": 18,
+              "account_status": "pending"
+            }
+          }
+        ],
+        "pagination": {
+          "current_page": 1,
+          "total_pages": 5,
+          "total_records": 50,
+          "page_size": 10
+        }
+      },
+      "product_catalog": {
+        "products": [
+          {
+            "id": "PROD-001",
+            "name": "Wireless Headphones",
+            "category": "Electronics",
+            "price": 99.99,
+            "currency": "USD",
+            "inventory": {
+              "in_stock": true,
+              "quantity": 25
+            },
+            "attributes": {
+              "color": "black",
+              "brand": "TechBrand",
+              "warranty": "1 year"
+            }
+          },
+          {
+            "id": "PROD-002",
+            "name": "Bluetooth Speaker",
+            "category": "Electronics", 
+            "price": 79.99,
+            "currency": "USD",
+            "inventory": {
+              "in_stock": true,
+              "quantity": 12
+            },
+            "attributes": {
+              "color": "blue",
+              "brand": "SoundCorp",
+              "warranty": "2 years"
+            }
+          }
+        ]
+      }
+    },
+    "form_submissions": {
+      "contact_form": {
+        "name": "Jennifer Lee",
+        "email": "jennifer.lee@contact.com",
+        "subject": "Product Inquiry",
+        "message": "I'm interested in learning more about your premium products.",
+        "phone": "555-777-8888",
+        "company": "Tech Startup Inc.",
+        "submitted_at": "2024-01-20T10:15:00Z",
+        "source": "website_contact_form"
+      },
+      "survey_response": {
+        "respondent_id": "RESP-001",
+        "survey_id": "SURV-2024-Q1",
+        "responses": {
+          "satisfaction_rating": 4,
+          "recommendation_score": 8,
+          "feedback": "Great service, very responsive support team.",
+          "improvement_suggestions": "Faster checkout process would be nice."
+        },
+        "demographics": {
+          "age_range": "25-34",
+          "location": "California, USA"
+        },
+        "submitted_at": "2024-01-20T16:30:00Z"
+      }
+    },
+    "file_processing": {
+      "document_metadata": {
+        "filename": "test-document.pdf",
+        "size_bytes": 2048576,
+        "mime_type": "application/pdf",
+        "created_date": "2024-01-15T09:00:00Z",
+        "modified_date": "2024-01-19T14:30:00Z",
+        "pages": 10,
+        "author": "Test Author",
+        "keywords": ["test", "document", "sample"]
+      },
+      "image_data": {
+        "filename": "test-image.jpg",
+        "size_bytes": 1024000,
+        "mime_type": "image/jpeg",
+        "dimensions": {
+          "width": 1920,
+          "height": 1080
+        },
+        "metadata": {
+          "camera": "Test Camera",
+          "date_taken": "2024-01-18T12:45:00Z",
+          "location": "Test Location"
+        }
+      }
+    }
+  },
+  "configuration": {
+    "test_environment": {
+      "base_url": "https://test-api.example.com",
+      "webhook_endpoint": "https://test-webhook.example.com",
+      "database_name": "test_workflow_db",
+      "email_recipient": "test@example.com"
+    },
+    "expected_processing_times": {
+      "simple_webhook": "< 5 seconds",
+      "database_operations": "< 10 seconds", 
+      "api_integrations": "< 30 seconds",
+      "file_processing": "< 60 seconds"
+    },
+    "validation_rules": {
+      "email_format": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+      "phone_format": "^\\+?[1-9]\\d{1,14}$",
+      "required_fields": ["id", "email"],
+      "optional_fields": ["phone", "department", "preferences"]
+    }
+  }
+}

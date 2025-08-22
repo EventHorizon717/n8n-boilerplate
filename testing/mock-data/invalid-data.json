@@ -1,0 +1,302 @@
+{
+  "test_scenarios": {
+    "malformed_data": [
+      {
+        "scenario": "missing_required_fields",
+        "data": {
+          "name": "John Incomplete",
+          "phone": "555-1234"
+        },
+        "missing_fields": ["id", "email"],
+        "expected_error": "Required field validation failure"
+      },
+      {
+        "scenario": "invalid_email_format",
+        "data": {
+          "id": 1,
+          "name": "Jane Invalid",
+          "email": "not-an-email",
+          "phone": "555-5678"
+        },
+        "validation_errors": ["Invalid email format"],
+        "expected_error": "Email format validation failure"
+      },
+      {
+        "scenario": "invalid_data_types",
+        "data": {
+          "id": "not-a-number",
+          "name": 12345,
+          "email": "test@example.com",
+          "phone": true,
+          "created_at": "not-a-date"
+        },
+        "validation_errors": [
+          "ID must be numeric",
+          "Name must be string",
+          "Phone must be string",
+          "Created_at must be valid ISO date"
+        ],
+        "expected_error": "Data type validation failure"
+      }
+    ],
+    "boundary_conditions": [
+      {
+        "scenario": "empty_strings",
+        "data": {
+          "id": 1,
+          "name": "",
+          "email": "",
+          "phone": "",
+          "department": ""
+        },
+        "expected_behavior": "Handle empty string validation"
+      },
+      {
+        "scenario": "null_values",
+        "data": {
+          "id": null,
+          "name": null,
+          "email": null,
+          "phone": null,
+          "department": null
+        },
+        "expected_behavior": "Handle null value validation"
+      },
+      {
+        "scenario": "extremely_long_strings",
+        "data": {
+          "id": 1,
+          "name": "A".repeat(1000),
+          "email": "user@" + "domain".repeat(100) + ".com",
+          "phone": "1".repeat(50),
+          "department": "X".repeat(500)
+        },
+        "expected_behavior": "Handle string length limits"
+      }
+    ],
+    "webhook_errors": {
+      "malformed_json": "{invalid json syntax",
+      "missing_content_type": {
+        "headers": {
+          "Authorization": "Bearer token123"
+        },
+        "body": "data without content-type header"
+      },
+      "empty_payload": {},
+      "oversized_payload": {
+        "data": "X".repeat(10000000),
+        "description": "Payload exceeding size limits"
+      },
+      "sql_injection_attempt": {
+        "user_input": "'; DROP TABLE users; --",
+        "email": "test@example.com'; DELETE FROM customers; --",
+        "description": "SQL injection attempt in input fields"
+      },
+      "xss_attempt": {
+        "name": "<script>alert('XSS')</script>",
+        "message": "<img src=x onerror=alert('XSS')>",
+        "description": "XSS payload in text fields"
+      }
+    },
+    "api_error_responses": {
+      "authentication_failure": {
+        "status_code": 401,
+        "error": "Unauthorized",
+        "message": "Invalid or expired API key",
+        "timestamp": "2024-01-20T10:00:00Z"
+      },
+      "rate_limit_exceeded": {
+        "status_code": 429,
+        "error": "Too Many Requests",
+        "message": "Rate limit exceeded. Retry after 300 seconds.",
+        "retry_after": 300
+      },
+      "server_error": {
+        "status_code": 500,
+        "error": "Internal Server Error", 
+        "message": "An unexpected error occurred",
+        "request_id": "req-12345"
+      },
+      "timeout_simulation": {
+        "scenario": "request_timeout",
+        "delay_seconds": 60,
+        "description": "Simulate API endpoint timeout"
+      },
+      "invalid_response_format": {
+        "status_code": 200,
+        "response": "This is not JSON",
+        "description": "Valid HTTP response but invalid JSON format"
+      }
+    },
+    "database_errors": {
+      "connection_failure": {
+        "error_type": "connection_timeout",
+        "error_code": "08006",
+        "message": "Connection to database failed",
+        "description": "Database server unavailable"
+      },
+      "duplicate_key_violation": {
+        "error_type": "unique_violation",
+        "error_code": "23505",
+        "message": "Duplicate key value violates unique constraint",
+        "constraint": "users_email_unique"
+      },
+      "foreign_key_violation": {
+        "error_type": "foreign_key_violation",
+        "error_code": "23503",
+        "message": "Foreign key constraint violation",
+        "constraint": "orders_customer_id_fkey"
+      },
+      "syntax_error": {
+        "error_type": "syntax_error",
+        "error_code": "42601",
+        "message": "Syntax error in SQL query",
+        "query": "SELCT * FROM users WHRE id = 1"
+      }
+    },
+    "file_processing_errors": {
+      "corrupted_file": {
+        "filename": "corrupted-file.pdf",
+        "error": "File appears to be corrupted",
+        "expected_behavior": "Graceful error handling and logging"
+      },
+      "unsupported_format": {
+        "filename": "document.xyz",
+        "mime_type": "application/unknown",
+        "error": "Unsupported file format",
+        "expected_behavior": "Format validation and rejection"
+      },
+      "file_too_large": {
+        "filename": "huge-file.pdf",
+        "size_bytes": 104857600,
+        "max_size_bytes": 10485760,
+        "error": "File size exceeds maximum limit",
+        "expected_behavior": "Size validation and rejection"
+      },
+      "file_not_found": {
+        "filename": "nonexistent-file.pdf",
+        "path": "/invalid/path/file.pdf",
+        "error": "File not found",
+        "expected_behavior": "File existence validation"
+      }
+    },
+    "network_errors": {
+      "dns_resolution_failure": {
+        "url": "https://nonexistent-domain-12345.com/api",
+        "error": "DNS resolution failed",
+        "expected_behavior": "Network error handling"
+      },
+      "connection_refused": {
+        "url": "https://localhost:99999/api",
+        "error": "Connection refused",
+        "expected_behavior": "Connection error handling"
+      },
+      "ssl_certificate_error": {
+        "url": "https://expired-certificate.com/api",
+        "error": "SSL certificate verification failed",
+        "expected_behavior": "SSL error handling"
+      }
+    },
+    "data_quality_issues": {
+      "inconsistent_formats": [
+        {
+          "phone": "555-123-4567"
+        },
+        {
+          "phone": "(555) 123-4567"
+        },
+        {
+          "phone": "+1-555-123-4567"
+        },
+        {
+          "phone": "5551234567"
+        }
+      ],
+      "mixed_encodings": {
+        "name_utf8": "José María",
+        "name_latin1": "Jos\u00e9 Mar\u00eda",
+        "description": "Test mixed character encoding handling"
+      },
+      "duplicate_records": [
+        {
+          "id": 1,
+          "email": "duplicate@example.com",
+          "name": "Duplicate User"
+        },
+        {
+          "id": 2,
+          "email": "duplicate@example.com",
+          "name": "Duplicate User"
+        }
+      ]
+    },
+    "edge_cases": {
+      "unicode_characters": {
+        "name": "测试用户 🎉",
+        "email": "тест@пример.рф",
+        "message": "Testing unicode: 🚀 ñáéíóú çğş 中文"
+      },
+      "special_characters": {
+        "name": "O'Brien-Smith, Jr.",
+        "email": "user+tag@domain-name.co.uk",
+        "description": "Name with apostrophe, hyphen, comma & email with plus and hyphen"
+      },
+      "numeric_edge_cases": {
+        "very_large_number": 9999999999999999,
+        "zero": 0,
+        "negative_number": -1,
+        "float_precision": 3.14159265359
+      }
+    }
+  },
+  "error_simulation_config": {
+    "random_failures": {
+      "enabled": false,
+      "failure_rate": 0.1,
+      "description": "Randomly fail 10% of operations for chaos testing"
+    },
+    "network_conditions": {
+      "slow_network": {
+        "delay_ms": 5000,
+        "packet_loss": 0.05
+      },
+      "intermittent_connectivity": {
+        "connection_drops": true,
+        "drop_frequency": 0.2
+      }
+    },
+    "resource_exhaustion": {
+      "memory_pressure": {
+        "simulate": false,
+        "max_memory_mb": 256
+      },
+      "cpu_throttling": {
+        "simulate": false,
+        "max_cpu_percent": 50
+      }
+    }
+  },
+  "validation_expectations": {
+    "error_handling": [
+      "Errors are properly logged with sufficient detail",
+      "User-friendly error messages are provided",
+      "System continues operating for non-critical errors",
+      "Proper HTTP status codes are returned",
+      "Sensitive information is not exposed in error messages"
+    ],
+    "data_validation": [
+      "Required fields are enforced",
+      "Data types are validated",
+      "Format validation is applied",
+      "Range and length limits are enforced",
+      "Malicious input is sanitized or rejected"
+    ],
+    "recovery_behavior": [
+      "Retry mechanisms are triggered appropriately",
+      "Fallback procedures are executed when available",
+      "Partial success scenarios are handled correctly",
+      "Resources are properly cleaned up after failures",
+      "Administrative alerts are sent for critical failures"
+    ]
+  }
+}

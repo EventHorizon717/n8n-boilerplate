@@ -1,0 +1,159 @@
+{
+  "meta": {
+    "instanceId": "basic-automation-example",
+    "templateName": "Basic Automation Example",
+    "templateVersion": "1.0.0", 
+    "description": "Simple webhook to email automation workflow"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook-basic-automation",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "basic-automation-webhook"
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "timestamp",
+              "name": "timestamp",
+              "type": "string",
+              "value": "={{ new Date().toISOString() }}"
+            },
+            {
+              "id": "formatted_message",
+              "name": "formatted_message",
+              "type": "string",
+              "value": "=New webhook received from {{ $json.source || 'unknown' }} at {{ $('Webhook').item(0).json.timestamp }}"
+            }
+          ]
+        }
+      },
+      "id": "format-data",
+      "name": "Format Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@example.com",
+        "toEmail": "admin@example.com", 
+        "subject": "Webhook Notification",
+        "message": "={{ $json.formatted_message }}",
+        "options": {
+          "replyTo": "noreply@example.com"
+        }
+      },
+      "id": "send-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log successful completion\nconst logEntry = {\n  workflow: 'basic-automation',\n  timestamp: new Date().toISOString(),\n  status: 'completed',\n  webhook_data: $('Webhook').item(0).json,\n  email_sent: true\n};\n\nconsole.log('Workflow completed:', JSON.stringify(logEntry, null, 2));\n\nreturn [{json: {status: 'success', message: 'Webhook processed and email sent'}}];"
+      },
+      "id": "log-completion",
+      "name": "Log Completion", 
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Error handling and logging\nconst error = $input.item(0).json;\nconst logEntry = {\n  workflow: 'basic-automation',\n  timestamp: new Date().toISOString(),\n  status: 'error',\n  error_message: error.message || 'Unknown error',\n  error_details: error\n};\n\nconsole.error('Workflow error:', JSON.stringify(logEntry, null, 2));\n\n// Return error info for potential alerting\nreturn [{json: {\n  status: 'error',\n  message: 'Webhook processing failed',\n  error: logEntry\n}}];"
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.code", 
+      "typeVersion": 2,
+      "position": [680, 500]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Format Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Data": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main", 
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        [
+          {
+            "node": "Log Completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all", 
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "",
+    "timezone": "America/New_York",
+    "executionTimeout": 300
+  },
+  "staticData": {},
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z", 
+      "id": "automation",
+      "name": "automation"
+    },
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "example",
+      "name": "example"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "basic-automation-v1.0.0"
+}

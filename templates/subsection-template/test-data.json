@@ -1,0 +1,345 @@
+{
+  "test_scenarios": {
+    "valid_data": [
+      {
+        "scenario": "happy_path",
+        "description": "Standard valid input data",
+        "input": {
+          "field1": "valid_value_1",
+          "field2": "valid_value_2", 
+          "email": "test@example.com",
+          "name": "Test User",
+          "age": 30,
+          "status": "active"
+        },
+        "expected_output": {
+          "status": "success",
+          "results": {
+            "processed_data": {
+              "processed_field": "VALID_VALUE_1",
+              "calculated_field": 30,
+              "enriched_field": "Processed: Test User"
+            }
+          }
+        }
+      },
+      {
+        "scenario": "minimal_data",
+        "description": "Minimum required fields only",
+        "input": {
+          "field1": "minimum",
+          "field2": "required"
+        },
+        "expected_output": {
+          "status": "success",
+          "results": {
+            "processed_data": {
+              "processed_field": "MINIMUM",
+              "calculated_field": 0,
+              "enriched_field": "Processed: Unknown"
+            }
+          }
+        }
+      },
+      {
+        "scenario": "complete_data",
+        "description": "All possible fields populated",
+        "input": {
+          "field1": "complete_value",
+          "field2": "all_fields",
+          "email": "complete@example.com",
+          "name": "Complete User",
+          "age": 25,
+          "status": "active",
+          "optional_field": "optional_value",
+          "preferences": {
+            "newsletter": true,
+            "notifications": false
+          },
+          "metadata": {
+            "source": "test_suite",
+            "timestamp": "2024-01-20T10:00:00Z"
+          }
+        },
+        "expected_output": {
+          "status": "success",
+          "results": {
+            "processed_data": {
+              "processed_field": "COMPLETE_VALUE",
+              "calculated_field": 25,
+              "enriched_field": "Processed: Complete User"
+            }
+          }
+        }
+      }
+    ],
+    "edge_cases": [
+      {
+        "scenario": "empty_strings",
+        "description": "Fields with empty string values",
+        "input": {
+          "field1": "",
+          "field2": "",
+          "email": "",
+          "name": ""
+        },
+        "expected_behavior": "Should handle empty strings gracefully"
+      },
+      {
+        "scenario": "null_values", 
+        "description": "Fields with null values",
+        "input": {
+          "field1": null,
+          "field2": null,
+          "email": null,
+          "name": null
+        },
+        "expected_behavior": "Should handle null values without crashing"
+      },
+      {
+        "scenario": "very_long_strings",
+        "description": "Fields with extremely long string values",
+        "input": {
+          "field1": "A".repeat(1000),
+          "field2": "B".repeat(1000),
+          "email": "very-long-email@" + "domain".repeat(50) + ".com",
+          "name": "Very ".repeat(100) + "Long Name"
+        },
+        "expected_behavior": "Should handle long strings without memory issues"
+      },
+      {
+        "scenario": "special_characters",
+        "description": "Fields containing special characters and unicode",
+        "input": {
+          "field1": "Special chars: !@#$%^&*()",
+          "field2": "Unicode: 🚀 ñáéíóú çğş 中文",
+          "email": "user+tag@domain-name.co.uk",
+          "name": "O'Brien-Smith, Jr."
+        },
+        "expected_behavior": "Should properly handle special characters and unicode"
+      },
+      {
+        "scenario": "numeric_boundaries",
+        "description": "Numeric fields at boundary values",
+        "input": {
+          "field1": "boundary_test",
+          "field2": "numeric_test",
+          "age": 0,
+          "value1": 2147483647,
+          "value2": -2147483648,
+          "decimal_value": 3.14159265359
+        },
+        "expected_behavior": "Should handle numeric boundary values correctly"
+      }
+    ],
+    "error_conditions": [
+      {
+        "scenario": "missing_required_fields",
+        "description": "Input missing required fields",
+        "input": {
+          "optional_field": "present",
+          "another_optional": "also_present"
+        },
+        "expected_output": {
+          "status": "error",
+          "error": {
+            "type": "validation_error",
+            "details": {
+              "field_errors": [
+                "Required field missing: field1",
+                "Required field missing: field2"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "scenario": "invalid_email_format",
+        "description": "Input with invalid email format",
+        "input": {
+          "field1": "valid",
+          "field2": "valid",
+          "email": "not-a-valid-email"
+        },
+        "expected_output": {
+          "status": "error",
+          "error": {
+            "type": "validation_error",
+            "details": {
+              "field_errors": ["Invalid format for field: email"]
+            }
+          }
+        }
+      },
+      {
+        "scenario": "out_of_range_values",
+        "description": "Numeric values outside acceptable ranges",
+        "input": {
+          "field1": "valid",
+          "field2": "valid",
+          "age": -5,
+          "score": 1000
+        },
+        "expected_output": {
+          "status": "error", 
+          "error": {
+            "type": "validation_error",
+            "details": {
+              "field_errors": ["Value out of range for field: age"]
+            }
+          }
+        }
+      },
+      {
+        "scenario": "malformed_json",
+        "description": "Input that would cause JSON parsing errors",
+        "input": "{ invalid json syntax",
+        "expected_behavior": "Should handle JSON parsing errors gracefully"
+      }
+    ],
+    "performance_data": {
+      "small_batch": {
+        "description": "Small batch for basic performance testing",
+        "record_count": 10,
+        "data": [
+          {
+            "field1": "performance_test_1",
+            "field2": "batch_small",
+            "email": "perf1@example.com",
+            "name": "Performance User 1",
+            "age": 25
+          },
+          {
+            "field1": "performance_test_2", 
+            "field2": "batch_small",
+            "email": "perf2@example.com",
+            "name": "Performance User 2",
+            "age": 30
+          }
+        ],
+        "expected_execution_time_ms": 1000,
+        "expected_memory_usage_mb": 10
+      },
+      "medium_batch": {
+        "description": "Medium batch for load testing",
+        "record_count": 100,
+        "data_generator": {
+          "pattern": {
+            "field1": "performance_test_{index}",
+            "field2": "batch_medium", 
+            "email": "perf{index}@example.com",
+            "name": "Performance User {index}",
+            "age": "{random_int(18,80)}"
+          },
+          "count": 100
+        },
+        "expected_execution_time_ms": 5000,
+        "expected_memory_usage_mb": 50
+      },
+      "large_batch": {
+        "description": "Large batch for stress testing",
+        "record_count": 1000,
+        "data_generator": {
+          "pattern": {
+            "field1": "stress_test_{index}",
+            "field2": "batch_large",
+            "email": "stress{index}@example.com", 
+            "name": "Stress User {index}",
+            "age": "{random_int(18,80)}"
+          },
+          "count": 1000
+        },
+        "expected_execution_time_ms": 30000,
+        "expected_memory_usage_mb": 200
+      }
+    }
+  },
+  "test_configuration": {
+    "validation_rules": {
+      "required_fields": ["field1", "field2"],
+      "email_pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+      "age_range": { "min": 0, "max": 150 },
+      "string_max_length": 1000
+    },
+    "performance_thresholds": {
+      "max_execution_time_ms": 60000,
+      "max_memory_usage_mb": 512,
+      "max_records_per_batch": 1000
+    },
+    "error_handling": {
+      "retry_attempts": 3,
+      "retry_delay_ms": 1000,
+      "timeout_ms": 30000
+    }
+  },
+  "mock_external_responses": {
+    "api_success": {
+      "status_code": 200,
+      "response_time_ms": 200,
+      "body": {
+        "status": "success",
+        "data": "mock api response"
+      }
+    },
+    "api_timeout": {
+      "scenario": "timeout",
+      "delay_ms": 35000,
+      "description": "Simulate API timeout"
+    },
+    "api_error": {
+      "status_code": 500,
+      "response_time_ms": 100,
+      "body": {
+        "error": "Internal Server Error",
+        "message": "Mock server error for testing"
+      }
+    },
+    "database_connection_error": {
+      "error_type": "connection_timeout",
+      "error_code": "08006",
+      "message": "Mock database connection failure"
+    }
+  },
+  "expected_outputs": {
+    "success_response_schema": {
+      "type": "object",
+      "required": ["status", "results", "summary"],
+      "properties": {
+        "status": { "enum": ["success"] },
+        "results": {
+          "type": "object", 
+          "required": ["processed_data", "metadata"],
+          "properties": {
+            "processed_data": { "type": "object" },
+            "metadata": {
+              "type": "object",
+              "required": ["subsection", "processing_time_ms", "records_processed"]
+            }
+          }
+        },
+        "summary": {
+          "type": "object",
+          "required": ["subsection_name", "execution_timestamp"]
+        }
+      }
+    },
+    "error_response_schema": {
+      "type": "object",
+      "required": ["status", "error"],
+      "properties": {
+        "status": { "enum": ["error"] },
+        "error": {
+          "type": "object",
+          "required": ["type", "code", "message", "details"],
+          "properties": {
+            "type": { "type": "string" },
+            "code": { "type": "string" },
+            "message": { "type": "string" },
+            "details": { "type": "object" }
+          }
+        },
+        "partial_results": { "type": "object" }
+      }
+    }
+  }
+}

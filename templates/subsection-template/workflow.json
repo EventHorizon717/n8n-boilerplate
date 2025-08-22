@@ -1,0 +1,180 @@
+{
+  "meta": {
+    "instanceId": "subsection-template",
+    "templateName": "Subsection Template",
+    "templateVersion": "1.0.0",
+    "description": "Template for creating workflow subsections"
+  },
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "subsection-start",
+      "name": "Subsection Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "notes": "Replace with appropriate input mechanism for subsection"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input validation template\nconst items = $input.all();\nconst validatedItems = [];\nconst errors = [];\n\n// Define validation rules specific to this subsection\nconst validationRules = {\n  required_fields: ['field1', 'field2'], // Update with actual required fields\n  field_formats: {\n    email: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/,\n    phone: /^[\\+]?[1-9][\\d]{1,14}$/\n    // Add more format validations as needed\n  },\n  field_ranges: {\n    age: { min: 0, max: 150 },\n    // Add more range validations as needed\n  }\n};\n\nfor (let i = 0; i < items.length; i++) {\n  const item = items[i].json;\n  const validation = { \n    record_index: i, \n    errors: [], \n    warnings: [] \n  };\n  \n  // Check required fields\n  validationRules.required_fields.forEach(field => {\n    if (!item[field] || item[field].toString().trim() === '') {\n      validation.errors.push(`Required field missing: ${field}`);\n    }\n  });\n  \n  // Validate field formats\n  Object.entries(validationRules.field_formats).forEach(([field, pattern]) => {\n    if (item[field] && !pattern.test(item[field])) {\n      validation.errors.push(`Invalid format for field: ${field}`);\n    }\n  });\n  \n  // Validate field ranges\n  Object.entries(validationRules.field_ranges).forEach(([field, range]) => {\n    if (item[field] && (item[field] < range.min || item[field] > range.max)) {\n      validation.errors.push(`Value out of range for field: ${field}`);\n    }\n  });\n  \n  // Create processed item with validation results\n  const processedItem = {\n    ...item,\n    validation_status: validation.errors.length === 0 ? 'valid' : 'invalid',\n    validation_errors: validation.errors,\n    validation_warnings: validation.warnings,\n    subsection_processed_at: new Date().toISOString(),\n    subsection_name: 'subsection-template' // Update with actual subsection name\n  };\n  \n  if (validation.errors.length === 0) {\n    validatedItems.push({ json: processedItem });\n  } else {\n    errors.push({ json: processedItem });\n  }\n}\n\nconsole.log(`Subsection validation: ${validatedItems.length} valid, ${errors.length} invalid`);\n\n// Store errors for error handling\n$workflow.staticData.subsectionErrors = errors;\n\nreturn validatedItems;"
+      },
+      "id": "validate-input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300],
+      "notes": "Customize validation rules for this subsection's requirements"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Business logic processing template\nconst items = $input.all();\nconst processedItems = [];\n\nfor (const item of items) {\n  const data = item.json;\n  \n  // Apply business logic specific to this subsection\n  const processedData = {\n    ...data,\n    \n    // Example transformations - customize for your use case\n    processed_field: data.input_field ? data.input_field.toUpperCase() : '',\n    calculated_field: (data.value1 || 0) + (data.value2 || 0),\n    enriched_field: `Processed: ${data.name || 'Unknown'}`,\n    \n    // Add processing metadata\n    processing_metadata: {\n      subsection: 'subsection-template', // Update with actual subsection name\n      processing_time: new Date().toISOString(),\n      operations_performed: [\n        'field_transformation',\n        'calculation',\n        'data_enrichment'\n      ]\n    }\n  };\n  \n  processedItems.push({ json: processedData });\n}\n\nconsole.log(`Processed ${processedItems.length} items in subsection`);\n\nreturn processedItems;"
+      },
+      "id": "process-data",
+      "name": "Process Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "notes": "Implement subsection-specific business logic here"
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "output_format",
+              "name": "results",
+              "type": "object",
+              "value": "={{ {\n  processed_data: $json,\n  metadata: {\n    subsection: 'subsection-template',\n    processing_time_ms: Date.now() - (new Date($json.subsection_processed_at).getTime()),\n    records_processed: 1,\n    operations_performed: $json.processing_metadata?.operations_performed || []\n  }\n} }}"
+            },
+            {
+              "id": "status_field",
+              "name": "status",
+              "type": "string", 
+              "value": "success"
+            },
+            {
+              "id": "summary_field",
+              "name": "summary",
+              "type": "object",
+              "value": "={{ {\n  subsection_name: 'subsection-template',\n  execution_timestamp: new Date().toISOString(),\n  next_subsection: 'next-subsection-name'\n} }}"
+            }
+          ]
+        }
+      },
+      "id": "format-output",
+      "name": "Format Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [900, 300],
+      "notes": "Format output according to subsection interface specification"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Success logging and completion\nconst items = $input.all();\nconst summary = {\n  subsection: 'subsection-template', // Update with actual subsection name\n  status: 'completed',\n  timestamp: new Date().toISOString(),\n  records_processed: items.length,\n  success_count: items.filter(item => item.json.status === 'success').length,\n  processing_time_ms: items[0]?.json.results?.metadata?.processing_time_ms || 0\n};\n\nconsole.log('Subsection completed successfully:', JSON.stringify(summary, null, 2));\n\n// Return the original items plus completion metadata\nreturn items.map(item => ({\n  json: {\n    ...item.json,\n    subsection_completion: summary\n  }\n}));"
+      },
+      "id": "log-completion",
+      "name": "Log Completion",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300],
+      "notes": "Log successful completion and add completion metadata"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Error handling for subsection\nconst errorItems = $input.all();\nconst subsectionErrors = $workflow.staticData.subsectionErrors || [];\n\n// Process any errors that occurred\nconst errorSummary = {\n  subsection: 'subsection-template', // Update with actual subsection name\n  status: 'error',\n  timestamp: new Date().toISOString(),\n  error_type: 'subsection_processing_error',\n  total_errors: subsectionErrors.length,\n  sample_errors: subsectionErrors.slice(0, 5).map(error => ({\n    record: error.json.record_index || 'unknown',\n    errors: error.json.validation_errors || ['unknown error']\n  }))\n};\n\nconsole.error('Subsection errors occurred:', JSON.stringify(errorSummary, null, 2));\n\n// Return error information in standard format\nreturn [{\n  json: {\n    status: 'error',\n    error: {\n      type: 'subsection_error',\n      code: 'SUBSECTION_PROCESSING_FAILED',\n      message: 'Subsection processing encountered errors',\n      details: {\n        subsection_name: 'subsection-template',\n        error_count: subsectionErrors.length,\n        errors: errorSummary.sample_errors\n      }\n    },\n    partial_results: {\n      processed_records: 0,\n      failed_records: subsectionErrors.length,\n      recoverable: true\n    }\n  }\n}];"
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 500],
+      "notes": "Handle and format errors according to interface specification"
+    }
+  ],
+  "connections": {
+    "Subsection Start": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Process Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Data": {
+      "main": [
+        [
+          {
+            "node": "Format Output", 
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Output": {
+      "main": [
+        [
+          {
+            "node": "Log Completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "",
+    "timezone": "America/New_York",
+    "executionTimeout": 600
+  },
+  "staticData": {},
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "subsection",
+      "name": "subsection"
+    },
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z", 
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "template",
+      "name": "template"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "subsection-template-v1.0.0"
+}

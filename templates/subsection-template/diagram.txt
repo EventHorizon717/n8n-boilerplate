@@ -1,0 +1,227 @@
+Subsection Template - ASCII Diagram
+==================================
+
+Subsection Flow Overview:
+========================
+
+[Subsection Start] ──→ [Validate Input] ──→ [Process Data] ──→ [Format Output] ──→ [Log Completion]
+         │                    │                   │                 │                    │
+         │                    ↓                   ↓                 ↓                    ↓
+         │            ┌─── Validation ───┐   ┌── Business ──┐  ┌─ Interface ─┐    ┌─ Success ─┐
+         │            │   - Required     │   │     Logic    │  │  Compliant  │    │  Logging  │
+         │            │   - Format       │   │   - Transform│  │  Output     │    │  Metadata │
+         │            │   - Range        │   │   - Calculate│  │  Structure  │    │  Addition │
+         │            └─────────────────┘   └──────────────┘  └─────────────┘    └───────────┘
+         │                    │
+         │                    │
+         └─────(Validation    │
+               Fails)         │
+                             │
+                             ↓
+                      [Error Handler] ──→ [Error Response]
+                             │                    │
+                             ↓                    ↓
+                      ┌─ Error Processing ─┐  ┌─ Standard ─┐
+                      │   - Log Details    │  │  Error    │
+                      │   - Categorize     │  │  Format   │
+                      │   - Generate Alert │  │  Response │
+                      └───────────────────┘  └───────────┘
+
+
+Detailed Node Flow:
+==================
+
+1. Subsection Start Node:
+   ┌─────────────────────┐
+   │  Subsection Start   │ ← Entry point for subsection
+   │                     │
+   │  • Manual Trigger   │
+   │  • Or Input from    │
+   │    Previous Section │
+   └─────────────────────┘
+              │
+              ↓
+
+2. Input Validation:
+   ┌─────────────────────┐
+   │   Validate Input    │
+   │                     │
+   │  • Check Required   │ ──┐
+   │  • Validate Formats │   │
+   │  • Check Ranges     │   │
+   │  • Business Rules   │   │
+   └─────────────────────┘   │
+              │               │
+              ↓               │
+        [Valid Data]          │
+              │               │
+              ↓               │
+                             │
+                             └─→ [Invalid Data] ──→ [Error Handler]
+
+3. Data Processing:
+   ┌─────────────────────┐
+   │   Process Data      │
+   │                     │
+   │  • Apply Business   │
+   │    Logic           │
+   │  • Transform Data   │
+   │  • Enrich Data      │
+   │  • Calculate Fields │
+   └─────────────────────┘
+              │
+              ↓
+
+4. Output Formatting:
+   ┌─────────────────────┐
+   │   Format Output     │
+   │                     │
+   │  • Structure Data   │
+   │  • Add Metadata     │
+   │  • Interface        │
+   │    Compliance       │
+   └─────────────────────┘
+              │
+              ↓
+
+5. Completion Logging:
+   ┌─────────────────────┐
+   │   Log Completion    │
+   │                     │
+   │  • Success Logging  │
+   │  • Performance Data │
+   │  • Summary Stats    │
+   └─────────────────────┘
+              │
+              ↓
+         [Final Output]
+
+
+Error Handling Path:
+===================
+
+[Any Node Error] ──→ [Error Handler] ──→ [Error Response]
+        │                   │                    │
+        ↓                   ↓                    ↓
+   ┌─ Error Types ─┐   ┌─ Error Processing ─┐  ┌─ Error Output ─┐
+   │• Validation   │   │• Categorize Error  │  │• Status: error │
+   │• Processing   │   │• Log Details       │  │• Error Details │
+   │• System       │   │• Generate Summary  │  │• Partial Result│
+   │• External     │   │• Create Alert      │  │• Recovery Info │
+   └───────────────┘   └──────────────────────┘  └───────────────┘
+
+
+Data Flow Example:
+=================
+
+Input Data:
+┌─────────────────────────────┐
+│ {                           │
+│   "field1": "value1",       │
+│   "field2": "value2",       │
+│   "email": "test@test.com", │
+│   "name": "Test User"       │
+│ }                           │
+└─────────────────────────────┘
+              │
+              ↓ (Validation)
+┌─────────────────────────────┐
+│ Validated Data:             │
+│ {                           │
+│   ...original fields,       │
+│   "validation_status": "ok",│
+│   "subsection_processed_at":│
+│   "2024-01-20T10:00:00Z"    │
+│ }                           │
+└─────────────────────────────┘
+              │
+              ↓ (Processing)
+┌─────────────────────────────┐
+│ Processed Data:             │
+│ {                           │
+│   ...previous fields,       │
+│   "processed_field": "VAL1",│
+│   "calculated_field": 42,   │
+│   "processing_metadata": {} │
+│ }                           │
+└─────────────────────────────┘
+              │
+              ↓ (Output Format)
+┌─────────────────────────────┐
+│ Interface-Compliant Output: │
+│ {                           │
+│   "status": "success",      │
+│   "results": {              │
+│     "processed_data": {...},│
+│     "metadata": {...}       │
+│   },                        │
+│   "summary": {...}          │
+│ }                           │
+└─────────────────────────────┘
+
+
+Interface Compliance:
+====================
+
+Input Interface:
+┌─ Expected Input Format ─┐
+│ • Required Fields       │ ←── Validation ensures compliance
+│ • Optional Fields       │
+│ • Data Types           │
+│ • Format Requirements  │
+└────────────────────────┘
+
+Output Interface:
+┌─ Standard Output Format ─┐
+│ • Status Field          │ ←── Format Output ensures compliance
+│ • Results Object        │
+│ • Metadata              │
+│ • Summary Information   │
+└─────────────────────────┘
+
+Error Interface:
+┌─ Error Response Format ─┐
+│ • Status: "error"       │ ←── Error Handler ensures compliance
+│ • Error Details         │
+│ • Partial Results       │
+│ • Recovery Information  │
+└─────────────────────────┘
+
+
+Performance Considerations:
+==========================
+
+Memory Usage Flow:
+Input → [Validation] → [Processing] → [Output] → [Cleanup]
+  ↓         ↓            ↓           ↓         ↓
+ 10MB   →  15MB     →   25MB    →   20MB   →  5MB
+         (Temp)      (Peak)      (Format)  (Final)
+
+Processing Time Distribution:
+┌─────────────────────────────────────────────────┐
+│ Validation: ████████ 20%                       │
+│ Processing: ████████████████████ 50%           │
+│ Formatting: ██████████ 25%                     │
+│ Logging:    ██ 5%                              │
+└─────────────────────────────────────────────────┘
+
+Legend:
+=======
+[Node Name]     - n8n workflow node
+{Data Object}   - Data structure
+──→            - Data flow direction  
+├─             - Branch point
+└─             - Branch end
+│              - Vertical connection
+─              - Horizontal connection
+(Process)       - Processing step description
+←──            - Interface compliance check
+
+Notes:
+======
+1. This template provides a standard structure for subsections
+2. Customize validation rules, processing logic, and output format
+3. Ensure error handling covers all potential failure modes
+4. Test thoroughly with provided test data scenarios
+5. Update diagram when modifying subsection logic
+6. Maintain interface compliance for seamless integration

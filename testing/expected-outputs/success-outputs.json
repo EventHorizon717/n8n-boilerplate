@@ -1,0 +1,315 @@
+{
+  "workflow_success_outputs": {
+    "basic_automation": {
+      "execution_status": "completed",
+      "execution_time_ms": 2500,
+      "nodes_executed": 4,
+      "outputs": {
+        "webhook_response": {
+          "status": "success",
+          "message": "Webhook processed successfully"
+        },
+        "email_sent": {
+          "status": "delivered",
+          "recipient": "admin@example.com",
+          "subject": "Webhook Notification",
+          "delivery_time": "2024-01-20T10:15:05Z"
+        },
+        "log_entry": {
+          "workflow": "basic-automation",
+          "timestamp": "2024-01-20T10:15:05Z",
+          "status": "completed",
+          "email_sent": true
+        }
+      }
+    },
+    "api_integration": {
+      "execution_status": "completed",
+      "execution_time_ms": 15000,
+      "nodes_executed": 8,
+      "outputs": {
+        "api_response": {
+          "status_code": 200,
+          "users_fetched": 25,
+          "response_time_ms": 450
+        },
+        "database_operations": {
+          "records_inserted": 25,
+          "records_updated": 0,
+          "records_failed": 0
+        },
+        "processing_summary": {
+          "total_users_processed": 25,
+          "successful_inserts": 25,
+          "failed_inserts": 0,
+          "execution_time": "2024-01-20T15:30:00Z"
+        },
+        "notification_sent": {
+          "recipient": "admin@example.com",
+          "subject": "API Integration Complete - 25 users processed",
+          "delivery_status": "delivered"
+        }
+      }
+    },
+    "data_processing": {
+      "execution_status": "completed",
+      "execution_time_ms": 45000,
+      "nodes_executed": 12,
+      "outputs": {
+        "csv_parsing": {
+          "total_rows": 1000,
+          "parsed_successfully": 980,
+          "parsing_errors": 20
+        },
+        "data_validation": {
+          "valid_records": 950,
+          "invalid_records": 50,
+          "validation_rules_applied": [
+            "email_format",
+            "required_fields",
+            "data_types",
+            "field_lengths"
+          ]
+        },
+        "data_processing": {
+          "batches_processed": 20,
+          "batch_size": 50,
+          "enrichment_operations": [
+            "email_domain_extraction",
+            "name_parsing",
+            "phone_formatting",
+            "timestamp_addition"
+          ]
+        },
+        "output_generation": {
+          "database_records": 950,
+          "json_export": {
+            "filename": "processed-contacts-2024-01-20.json",
+            "record_count": 950,
+            "file_size_bytes": 245000
+          },
+          "csv_export": {
+            "filename": "processed-contacts-2024-01-20.csv",
+            "record_count": 950,
+            "file_size_bytes": 185000
+          }
+        },
+        "completion_summary": {
+          "total_rows": 1000,
+          "valid_rows": 950,
+          "invalid_rows": 50,
+          "exports_created": {
+            "database": true,
+            "json_file": true,
+            "csv_file": true
+          }
+        }
+      }
+    }
+  },
+  "node_success_outputs": {
+    "webhook_trigger": {
+      "trigger_successful": true,
+      "payload_received": true,
+      "content_type": "application/json",
+      "payload_size_bytes": 512,
+      "trigger_timestamp": "2024-01-20T10:15:00Z"
+    },
+    "http_request": {
+      "request_successful": true,
+      "status_code": 200,
+      "response_headers": {
+        "content-type": "application/json",
+        "content-length": "2048"
+      },
+      "response_time_ms": 350,
+      "retry_attempts": 0
+    },
+    "code_node": {
+      "execution_successful": true,
+      "execution_time_ms": 125,
+      "memory_usage_mb": 12.5,
+      "return_data": {
+        "processed_items": 50,
+        "transformations_applied": 8,
+        "output_format": "json"
+      }
+    },
+    "set_node": {
+      "fields_modified": 5,
+      "fields_added": 3,
+      "fields_removed": 1,
+      "field_operations": {
+        "timestamp": "added",
+        "full_name": "computed",
+        "email": "normalized",
+        "phone": "formatted",
+        "internal_id": "removed"
+      }
+    },
+    "switch_node": {
+      "condition_evaluated": true,
+      "branch_taken": "path_1",
+      "routing_logic": "email_domain_check",
+      "items_routed": {
+        "path_1": 75,
+        "path_2": 25,
+        "fallback": 0
+      }
+    },
+    "database_node": {
+      "connection_successful": true,
+      "query_executed": true,
+      "execution_time_ms": 250,
+      "rows_affected": 100,
+      "operation_type": "INSERT",
+      "transaction_committed": true
+    },
+    "email_node": {
+      "email_sent": true,
+      "recipient_count": 1,
+      "delivery_time_ms": 1200,
+      "message_size_bytes": 2048,
+      "smtp_response": "250 OK",
+      "tracking_id": "MSG-2024-001"
+    }
+  },
+  "performance_benchmarks": {
+    "small_dataset": {
+      "record_count": 100,
+      "expected_execution_time_ms": 5000,
+      "expected_memory_usage_mb": 50,
+      "expected_success_rate": 99.0
+    },
+    "medium_dataset": {
+      "record_count": 1000,
+      "expected_execution_time_ms": 30000,
+      "expected_memory_usage_mb": 150,
+      "expected_success_rate": 98.5
+    },
+    "large_dataset": {
+      "record_count": 10000,
+      "expected_execution_time_ms": 300000,
+      "expected_memory_usage_mb": 500,
+      "expected_success_rate": 97.0
+    }
+  },
+  "data_quality_outputs": {
+    "validation_results": {
+      "email_validation": {
+        "total_checked": 1000,
+        "valid_format": 980,
+        "invalid_format": 20,
+        "validation_rate": 98.0
+      },
+      "phone_validation": {
+        "total_checked": 1000,
+        "valid_format": 950,
+        "invalid_format": 50,
+        "validation_rate": 95.0
+      },
+      "required_fields": {
+        "total_checked": 1000,
+        "complete_records": 975,
+        "incomplete_records": 25,
+        "completion_rate": 97.5
+      }
+    },
+    "data_transformations": {
+      "email_normalization": {
+        "records_processed": 980,
+        "uppercase_converted": 150,
+        "whitespace_trimmed": 45,
+        "duplicate_domains_found": 5
+      },
+      "phone_formatting": {
+        "records_processed": 950,
+        "formats_standardized": 950,
+        "invalid_numbers_flagged": 25,
+        "international_numbers": 75
+      },
+      "name_processing": {
+        "records_processed": 1000,
+        "names_split": 985,
+        "titles_extracted": 125,
+        "special_characters_handled": 45
+      }
+    }
+  },
+  "integration_outputs": {
+    "api_integrations": {
+      "successful_connections": 5,
+      "failed_connections": 0,
+      "authentication_successful": true,
+      "data_retrieved": {
+        "records": 500,
+        "api_calls": 5,
+        "rate_limits_respected": true
+      }
+    },
+    "database_operations": {
+      "connections_established": 3,
+      "queries_executed": 150,
+      "transactions_committed": 145,
+      "rollbacks_performed": 5,
+      "connection_pool_usage": 65
+    },
+    "file_operations": {
+      "files_read": 3,
+      "files_written": 2,
+      "total_file_size_mb": 15.5,
+      "processing_time_ms": 8500,
+      "format_conversions": 2
+    }
+  },
+  "error_recovery_outputs": {
+    "retry_mechanisms": {
+      "http_retries": {
+        "total_attempts": 125,
+        "successful_retries": 20,
+        "max_retries_reached": 2,
+        "backoff_strategy": "exponential"
+      },
+      "database_retries": {
+        "connection_retries": 5,
+        "query_retries": 8,
+        "successful_recoveries": 12,
+        "permanent_failures": 1
+      }
+    },
+    "fallback_procedures": {
+      "cache_usage": {
+        "cache_hits": 25,
+        "cache_misses": 5,
+        "fallback_activations": 3
+      },
+      "default_values": {
+        "fields_defaulted": 15,
+        "records_with_defaults": 8,
+        "default_rules_applied": 4
+      }
+    }
+  },
+  "monitoring_outputs": {
+    "execution_metrics": {
+      "total_executions": 100,
+      "successful_executions": 97,
+      "failed_executions": 3,
+      "average_execution_time_ms": 15250,
+      "p95_execution_time_ms": 28000
+    },
+    "resource_usage": {
+      "peak_memory_mb": 245,
+      "average_memory_mb": 125,
+      "peak_cpu_percent": 85,
+      "average_cpu_percent": 35,
+      "network_io_mb": 50
+    },
+    "alert_conditions": {
+      "performance_alerts": 0,
+      "error_rate_alerts": 0,
+      "resource_alerts": 0,
+      "availability_alerts": 0
+    }
+  }
+}
