@@ -134,7 +134,7 @@ GRANT ALL PRIVILEGES ON DATABASE workflow_db TO workflow_user;
 ### Schema Versioning
 - Track schema changes with migrations
 - Use version numbers for schema updates
-- Maintain backward compatibility
+- Plan clean migration paths
 - Document breaking changes
 
 ## Backup and Maintenance
