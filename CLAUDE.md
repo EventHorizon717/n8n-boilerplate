@@ -270,6 +270,122 @@ When Claude Code encounters:
 - **"na"**: Will skip that section and exclude related functionality from the workflow
 - **Specific answers**: Will use your responses directly in the workflow design
 
+## Essential Commands
+
+### Workflow Validation
+```bash
+bash .claude/commands/validate-workflow.sh
+```
+Validates JSON structure, node connections, and workflow integrity.
+
+### Quality Assurance
+```bash
+bash .claude/commands/quality-check.sh
+```
+Comprehensive validation combining all quality checks - run before deployment.
+
+### JSON Formatting
+```bash
+bash .claude/commands/format-json.sh
+```
+Standardizes JSON formatting across all workflow and template files.
+
+### Diagram Generation
+```bash
+bash .claude/commands/generate-diagram.sh
+```
+Auto-generates ASCII workflow diagrams from JSON files.
+
+### Testing
+```bash
+bash .claude/commands/test-workflow.sh
+```
+Executes test scenarios with mock data to validate workflow behavior.
+
+**Always run quality-check before deploying workflows to ensure reliability.**
+
+## Code Quality Guidelines
+
+### JSON Structure Standards
+- **Valid JSON**: All workflow files must pass `python -m json.tool` validation
+- **Consistent Indentation**: Use 2 spaces for all JSON files
+- **Required Properties**: All workflows must have `nodes`, `connections`, and `meta` properties
+- **Unique IDs**: Node IDs must be unique and follow naming conventions
+
+### n8n Expression Best Practices
+- **Expression Syntax**: Use `{{ $json.fieldName }}` for data references
+- **Type Safety**: Validate data types before transformations
+- **Error Handling**: Always include fallback values: `{{ $json.field ?? 'default' }}`
+- **Null Checks**: Check for null/undefined before processing: `{{ $json.field ? $json.field : '' }}`
+
+### Node Configuration Standards
+- **Descriptive Names**: Use clear, descriptive names for all nodes
+- **Parameter Validation**: Ensure all required parameters are configured
+- **Authentication**: Use environment variables for credentials, never hardcode
+- **Timeouts**: Configure appropriate timeouts for external API calls
+
+### Error Handling Patterns
+- **Graceful Degradation**: Continue processing valid records when some fail
+- **Retry Logic**: Implement exponential backoff for transient failures
+- **Dead Letter Queues**: Route failed records to error handling workflows
+- **Monitoring**: Include monitoring nodes for error rate tracking
+
+### Data Validation Rules
+- **Schema Validation**: Validate incoming data against expected schemas
+- **Range Checks**: Ensure numeric values fall within business-defined ranges
+- **Format Validation**: Verify dates, emails, URLs using appropriate patterns
+- **Business Rules**: Implement domain-specific validation logic
+
+## Technology Stack
+
+### Core Technologies
+- **n8n Platform**: Workflow automation and orchestration
+- **JSON**: Primary data format for workflow definitions
+- **JavaScript/Python**: Custom code node implementations
+- **REST APIs**: Integration with external services
+- **Webhooks**: Real-time data ingestion patterns
+
+### Development Tools
+- **VS Code**: Recommended editor with JSON validation
+- **Postman/Insomnia**: API testing and webhook simulation
+- **jq**: Command-line JSON processing and validation
+- **Python**: JSON manipulation and validation scripts
+
+### Testing & Validation
+- **JSON Schema**: Structural validation of workflow files
+- **Mock Data**: Comprehensive test scenarios with realistic data
+- **Diagram Validation**: ASCII diagrams must match JSON structure
+- **Performance Testing**: Load testing with expected data volumes
+
+## Testing Strategy
+
+### Unit Testing Approach
+- **Node Isolation**: Test each node's logic independently
+- **Mock Dependencies**: Use mock data for external API dependencies
+- **Error Scenarios**: Test failure modes and error handling paths
+- **Edge Cases**: Validate boundary conditions and unusual inputs
+
+### Integration Testing
+- **End-to-End**: Test complete workflow with realistic data scenarios
+- **Subsection Testing**: Validate individual workflow subsections
+- **Data Flow**: Verify data transformations maintain integrity
+- **Performance**: Test with expected data volumes and complexity
+
+### Test Data Management
+- **Valid Data**: Comprehensive sets of expected input formats
+- **Invalid Data**: Edge cases and malformed inputs for error testing
+- **Expected Outputs**: Known-good results for comparison validation
+- **Performance Data**: Large datasets for scalability testing
+
+### Validation Checklist
+Before deploying any workflow:
+- [ ] All JSON files pass syntax validation
+- [ ] Node connections form valid directed graph
+- [ ] Error handling covers all identified failure modes
+- [ ] Test scenarios execute successfully with mock data
+- [ ] ASCII diagrams accurately represent workflow structure
+- [ ] Performance meets defined success criteria
+
 ## Technical References
 - **START HERE**: Complete scoping questionnaire in `docs/workflow-scoping.md`
 - Use `references/n8n-nodes-catalog.md` for available nodes

@@ -1,0 +1,38 @@
+{
+    "name": "PostgreSQL Select Query",
+    "description": "PostgreSQL SELECT operation with filtering and pagination",
+    "category": "database",
+    "service": "postgres",
+    "node": {
+        "parameters": {
+            "operation": "executeQuery",
+            "query": "SELECT * FROM {{ $json.table_name || 'table_name' }} WHERE {{ $json.where_clause || '1=1' }} ORDER BY {{ $json.order_by || 'created_at DESC' }} LIMIT {{ $json.limit || '100' }} OFFSET {{ $json.offset || '0' }}",
+            "additionalFields": {
+                "mode": "independently"
+            }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2,
+        "credentials": {
+            "postgres": {
+                "id": "postgres-main",
+                "name": "Main Database"
+            }
+        },
+        "notes": "Customize WHERE clause, ORDER BY, and LIMIT based on requirements"
+    },
+    "usage_guidelines": {
+        "querying_patterns": [
+            "Use parameterized queries to prevent SQL injection",
+            "Implement pagination with LIMIT and OFFSET for large datasets",
+            "Add appropriate WHERE clauses for data filtering",
+            "Use ORDER BY for consistent result ordering"
+        ],
+        "performance_optimization": [
+            "Create indexes on frequently queried columns",
+            "Limit result sets with appropriate LIMIT values",
+            "Use EXPLAIN to analyze query performance",
+            "Consider query caching for frequently executed queries"
+        ]
+    }
+}

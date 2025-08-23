@@ -1,83 +1,92 @@
 {
-  "meta": {
-    "instanceId": "template-instance",
-    "templateName": "n8n Workflow Template",
-    "templateVersion": "1.0.0",
-    "description": "Template workflow structure - replace with actual workflow implementation"
-  },
-  "nodes": [
-    {
-      "parameters": {},
-      "id": "template-trigger",
-      "name": "Workflow Trigger",
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [260, 300],
-      "notes": "Replace with appropriate trigger node (Webhook, Cron, etc.)"
+    "meta": {
+        "instanceId": "template-instance",
+        "templateName": "n8n Workflow Template",
+        "templateVersion": "1.0.0",
+        "description": "Template workflow structure - replace with actual workflow implementation"
     },
-    {
-      "parameters": {
-        "jsCode": "// Template processing node\n// Replace with actual workflow logic\nreturn [{json: {message: 'Template workflow executed', timestamp: new Date().toISOString()}}];"
-      },
-      "id": "template-process",
-      "name": "Process Data",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [460, 300],
-      "notes": "Replace with actual data processing nodes"
+    "nodes": [
+        {
+            "parameters": {},
+            "id": "template-trigger",
+            "name": "Workflow Trigger",
+            "type": "n8n-nodes-base.manualTrigger",
+            "typeVersion": 1,
+            "position": [
+                260,
+                300
+            ],
+            "notes": "Replace with appropriate trigger node (Webhook, Cron, etc.)"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Template processing node\n// Replace with actual workflow logic\nreturn [{json: {message: 'Template workflow executed', timestamp: new Date().toISOString()}}];"
+            },
+            "id": "template-process",
+            "name": "Process Data",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                460,
+                300
+            ],
+            "notes": "Replace with actual data processing nodes"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Template output formatting\n// Replace with actual output logic\nconst input = $input.all();\nreturn input.map(item => ({\n  json: {\n    status: 'success',\n    data: item.json,\n    processedAt: new Date().toISOString()\n  }\n}));"
+            },
+            "id": "template-output",
+            "name": "Format Output",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                660,
+                300
+            ],
+            "notes": "Replace with actual output nodes (email, database, webhook, etc.)"
+        }
+    ],
+    "connections": {
+        "Workflow Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Process Data",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Process Data": {
+            "main": [
+                [
+                    {
+                        "node": "Format Output",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
     },
-    {
-      "parameters": {
-        "jsCode": "// Template output formatting\n// Replace with actual output logic\nconst input = $input.all();\nreturn input.map(item => ({\n  json: {\n    status: 'success',\n    data: item.json,\n    processedAt: new Date().toISOString()\n  }\n}));"
-      },
-      "id": "template-output",
-      "name": "Format Output",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [660, 300],
-      "notes": "Replace with actual output nodes (email, database, webhook, etc.)"
-    }
-  ],
-  "connections": {
-    "Workflow Trigger": {
-      "main": [
-        [
-          {
-            "node": "Process Data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "settings": {
+        "saveManualExecutions": true,
+        "callerPolicy": "workflowsFromSameOwner",
+        "errorWorkflow": "",
+        "timezone": "America/New_York"
     },
-    "Process Data": {
-      "main": [
-        [
-          {
-            "node": "Format Output",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "settings": {
-    "saveManualExecutions": true,
-    "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": "",
-    "timezone": "America/New_York"
-  },
-  "staticData": {},
-  "tags": [
-    {
-      "createdAt": "2024-01-01T00:00:00.000Z",
-      "updatedAt": "2024-01-01T00:00:00.000Z",
-      "id": "template",
-      "name": "template"
-    }
-  ],
-  "triggerCount": 1,
-  "updatedAt": "2024-01-01T00:00:00.000Z",
-  "versionId": "template-v1.0.0"
+    "staticData": {},
+    "tags": [
+        {
+            "createdAt": "2024-01-01T00:00:00.000Z",
+            "updatedAt": "2024-01-01T00:00:00.000Z",
+            "id": "template",
+            "name": "template"
+        }
+    ],
+    "triggerCount": 1,
+    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "versionId": "template-v1.0.0"
 }

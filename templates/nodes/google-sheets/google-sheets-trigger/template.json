@@ -1,0 +1,228 @@
+{
+  "name": "Google Sheets Trigger",
+  "description": "Monitors Google Sheets for changes and triggers workflows on row additions, updates, or modifications",
+  "category": "trigger",
+  "service": "google-sheets",
+  "typeVersion": "1.0",
+  "versions": ["1.0"],
+  "node": {
+    "parameters": {
+      "authentication": "triggerOAuth2",
+      "documentId": {
+        "mode": "list",
+        "value": ""
+      },
+      "sheetName": {
+        "mode": "list", 
+        "value": ""
+      },
+      "event": "anyUpdate",
+      "includeInOutput": "new",
+      "options": {
+        "columnsToWatch": [],
+        "dataLocationOnSheet": {
+          "values": {
+            "rangeDefinition": "specifyRangeA1",
+            "headerRow": 1,
+            "firstDataRow": 2,
+            "range": "A:Z"
+          }
+        },
+        "valueRender": "UNFORMATTED_VALUE",
+        "dateTimeRenderOption": "SERIAL_NUMBER"
+      }
+    },
+    "type": "n8n-nodes-base.googleSheetsTrigger",
+    "typeVersion": 1.0,
+    "credentials": {
+      "googleSheetsTriggerOAuth2Api": {
+        "id": "{{ credential_id }}",
+        "name": "Google Sheets OAuth2"
+      }
+    },
+    "polling": true,
+    "notes": "Monitors Google Sheets for data changes with revision tracking and field-level watch capabilities"
+  },
+  "patterns": {
+    "polling_mechanism": {
+      "revision_tracking": {
+        "description": "Uses Google Drive API revision history to detect changes",
+        "workflow_static_data": "Stores lastRevision, lastRevisionLink, and lastIndexChecked",
+        "change_detection": "Compares current revision against stored revision"
+      },
+      "data_persistence": {
+        "document_sheet_binding": "Tracks documentId and sheetId in workflow static data",
+        "reset_conditions": "Resets tracking when document or sheet changes",
+        "index_tracking": "Maintains lastIndexChecked for row-added events"
+      }
+    },
+    "resource_locator_pattern": {
+      "document_selection": {
+        "modes": ["list", "url", "id"],
+        "url_extraction": "GOOGLE_DRIVE_FILE_URL_REGEX pattern matching",
+        "validation": "Regex validation for Drive file URLs and IDs",
+        "search_integration": "spreadSheetsSearch for dynamic document listing"
+      },
+      "sheet_selection": {
+        "modes": ["list", "url", "id"], 
+        "dependency": "loadOptionsDependsOn documentId.value",
+        "url_extraction": "GOOGLE_SHEETS_SHEET_URL_REGEX pattern matching",
+        "validation": "gid pattern validation for sheet IDs"
+      }
+    },
+    "event_handling": {
+      "row_added": {
+        "detection": "Compares current row count with stored lastIndexChecked",
+        "data_processing": "arrayOfArraysToJson conversion with column headers",
+        "index_management": "Updates lastIndexChecked after successful processing"
+      },
+      "row_updated": {
+        "revision_comparison": "compareRevisions function with previous/current data",
+        "column_watching": "Optional columnsToWatch for selective monitoring",
+        "change_detection": "Deep comparison of row data between revisions"
+      },
+      "any_update": {
+        "combined_logic": "Union of row_added and row_updated event handling",
+        "output_control": "includeInOutput parameter for old/new/both versions"
+      }
+    },
+    "data_transformation": {
+      "range_processing": {
+        "a1_notation": "Support for A:Z, A1:C10 range specifications", 
+        "header_row_handling": "Configurable header row index with validation",
+        "data_row_offset": "firstDataRow parameter for data starting position"
+      },
+      "value_rendering": {
+        "unformatted": "UNFORMATTED_VALUE for raw data extraction",
+        "formatted": "FORMATTED_VALUE respecting spreadsheet formatting",
+        "formula": "FORMULA mode to extract cell formulas"
+      },
+      "output_formatting": {
+        "json_conversion": "arrayOfArraysToJson with column header mapping",
+        "data_type_handling": "Automatic type conversion based on cell values",
+        "null_handling": "Graceful handling of empty cells and missing data"
+      }
+    },
+    "error_handling": {
+      "permission_errors": {
+        "edit_access_required": "Clear messaging for insufficient permissions",
+        "fallback_suggestions": "Recommend 'Row Added' trigger for view-only access"
+      },
+      "api_errors": {
+        "rate_limiting": "Built-in retry mechanisms for API quota limits",
+        "network_failures": "Graceful handling of temporary connectivity issues",
+        "malformed_responses": "Validation of API response structure"
+      },
+      "data_validation": {
+        "sheet_name_length": "31 character limit validation with clear error message",
+        "range_validation": "A1 notation syntax checking and error reporting",
+        "column_existence": "Validation of columnsToWatch against sheet headers"
+      }
+    },
+    "authentication": {
+      "oauth2_flow": {
+        "credential_type": "googleSheetsTriggerOAuth2Api",
+        "scope_requirements": "sheets.readonly, drive.readonly for revision access",
+        "token_management": "Automatic token refresh and error handling"
+      },
+      "api_access": {
+        "sheets_api": "Google Sheets API v4 for data operations",
+        "drive_api": "Google Drive API v3 for revision tracking",
+        "combined_access": "Multi-API integration for comprehensive monitoring"
+      }
+    }
+  },
+  "implementation": {
+    "polling_logic": {
+      "manual_mode": "Return current data for immediate testing",
+      "automatic_mode": "Compare against stored state for change detection",
+      "revision_fetching": "Paginated revision API calls with pageToken handling",
+      "data_comparison": "Binary data comparison for revision changes"
+    },
+    "state_management": {
+      "workflow_static_data": "Persistent storage across workflow executions",
+      "initialization": "First-run detection and baseline establishment",
+      "reset_triggers": "Document/sheet change detection and state cleanup"
+    },
+    "data_processing": {
+      "header_extraction": "Dynamic column header detection from specified row",
+      "range_parsing": "A1 notation to coordinate conversion",
+      "batch_processing": "Efficient handling of large data ranges",
+      "memory_optimization": "Streaming data processing for large sheets"
+    },
+    "change_detection": {
+      "revision_comparison": "Binary diff of exported sheet data",
+      "column_filtering": "Selective monitoring based on columnsToWatch",
+      "row_identification": "Row-level change tracking with proper indexing",
+      "deduplication": "Prevent duplicate triggers for same changes"
+    }
+  },
+  "usage": {
+    "common_configurations": {
+      "new_row_monitoring": {
+        "event": "rowAdded",
+        "range": "A:Z",
+        "headerRow": 1,
+        "firstDataRow": 2,
+        "use_case": "Form submissions, new entries tracking"
+      },
+      "data_updates_tracking": {
+        "event": "rowUpdate", 
+        "columnsToWatch": ["status", "priority", "assignee"],
+        "includeInOutput": "both",
+        "use_case": "Task management, status tracking"
+      },
+      "comprehensive_monitoring": {
+        "event": "anyUpdate",
+        "includeInOutput": "new",
+        "options": {
+          "valueRender": "FORMATTED_VALUE",
+          "dateTimeRenderOption": "FORMATTED_STRING"
+        },
+        "use_case": "Complete change auditing, data synchronization"
+      }
+    },
+    "advanced_patterns": {
+      "selective_column_watching": {
+        "columnsToWatch": ["column1", "column2"],
+        "description": "Monitor only specific columns for changes",
+        "performance_benefit": "Reduces false positives and processing overhead"
+      },
+      "custom_range_monitoring": {
+        "range": "B2:E100",
+        "headerRow": 1,
+        "description": "Monitor specific data range within sheet",
+        "use_case": "Partial sheet monitoring, data validation ranges"
+      },
+      "formatted_data_extraction": {
+        "valueRender": "FORMATTED_VALUE",
+        "dateTimeRenderOption": "FORMATTED_STRING",
+        "description": "Extract data with spreadsheet formatting preserved",
+        "use_case": "Report generation, display-ready data"
+      }
+    },
+    "resource_locator_examples": {
+      "document_by_url": {
+        "mode": "url",
+        "value": "https://docs.google.com/spreadsheets/d/1abc123/edit",
+        "description": "Direct URL input for document selection"
+      },
+      "document_by_id": {
+        "mode": "id", 
+        "value": "1abc123def456",
+        "description": "Direct document ID input"
+      },
+      "sheet_by_url": {
+        "mode": "url",
+        "value": "https://docs.google.com/spreadsheets/d/1abc123/edit#gid=123456",
+        "description": "Sheet-specific URL with gid parameter"
+      }
+    },
+    "data_processing_patterns": {
+      "header_mapping": "Automatic column header to JSON key conversion",
+      "type_inference": "Automatic data type detection and conversion",
+      "null_handling": "Empty cells converted to null or empty string",
+      "array_processing": "Multiple rows returned as array of JSON objects"
+    }
+  }
+}

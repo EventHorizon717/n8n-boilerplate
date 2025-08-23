@@ -1,0 +1,57 @@
+{
+    "name": "Data Transformation Set Node",
+    "description": "Template for common data transformation operations",
+    "category": "data_processing",
+    "service": "core",
+    "node": {
+        "parameters": {
+            "mode": "manual",
+            "duplicateItem": false,
+            "assignments": {
+                "assignments": [
+                    {
+                        "id": "timestamp",
+                        "name": "processed_at",
+                        "type": "string",
+                        "value": "={{ new Date().toISOString() }}"
+                    },
+                    {
+                        "id": "full_name",
+                        "name": "full_name",
+                        "type": "string",
+                        "value": "={{ ($json.first_name || '') + ' ' + ($json.last_name || '') }}"
+                    },
+                    {
+                        "id": "email_domain",
+                        "name": "email_domain",
+                        "type": "string",
+                        "value": "={{ $json.email ? $json.email.split('@')[1] : '' }}"
+                    },
+                    {
+                        "id": "workflow_context",
+                        "name": "workflow_context",
+                        "type": "object",
+                        "value": "={{ { workflow_id: $workflow.id, workflow_name: $workflow.name, execution_id: $execution.id } }}"
+                    }
+                ]
+            }
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3,
+        "notes": "Customize field transformations based on your data requirements"
+    },
+    "usage_guidelines": {
+        "transformation_patterns": [
+            "Add processing timestamp for audit tracking",
+            "Combine multiple fields into computed fields",
+            "Extract components from complex fields (email domains, URL parts)",
+            "Include workflow context for data lineage tracking"
+        ],
+        "data_quality": [
+            "Use null coalescing operators (??) for fallback values",
+            "Validate data types before transformation",
+            "Handle edge cases for missing or malformed data",
+            "Include error handling for complex transformations"
+        ]
+    }
+}

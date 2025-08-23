@@ -1,0 +1,135 @@
+{
+  "name": "AI Agent",
+  "description": "Main AI Agent node that provides conversational AI functionality with tool integration, streaming support, output parsing, and fallback model capabilities",
+  "category": "AI Agent",
+  "service": "ai-agent",
+  "node": {
+    "parameters": {
+      "promptType": {
+        "type": "options",
+        "options": [
+          { "name": "Auto", "value": "auto" },
+          { "name": "Define", "value": "define" }
+        ],
+        "description": "Choose how to provide the prompt to the AI agent"
+      },
+      "text": {
+        "type": "string",
+        "description": "Input text or prompt for the AI agent",
+        "displayOptions": {
+          "show": {
+            "promptType": ["define"]
+          }
+        }
+      },
+      "hasOutputParser": {
+        "type": "boolean",
+        "default": false,
+        "description": "Require specific output format by connecting an output parser",
+        "noDataExpression": true
+      },
+      "needsFallback": {
+        "type": "boolean", 
+        "default": false,
+        "description": "Enable fallback model for error recovery",
+        "noDataExpression": true,
+        "displayOptions": {
+          "show": {
+            "@version": [{ "_cnd": { "gte": 2.1 } }]
+          }
+        }
+      },
+      "enableStreaming": {
+        "type": "boolean",
+        "default": false,
+        "description": "Enable streaming responses for real-time output"
+      }
+    },
+    "type": "n8n-nodes-base.agent",
+    "typeVersion": [2, 2.1, 2.2],
+    "credentials": [],
+    "inputs": {
+      "dynamic": true,
+      "pattern": "={{((hasOutputParser, needsFallback) => { return getInputs(true, hasOutputParser, needsFallback)})(...)}}",
+      "types": ["main", "ai-languageModel", "ai-outputParser", "ai-tool"]
+    },
+    "outputs": ["main"],
+    "connectionTypes": {
+      "input": ["main", "ai-languageModel", "ai-outputParser", "ai-tool"],
+      "output": ["main"]
+    },
+    "hints": [
+      {
+        "message": "You are using streaming responses. Make sure to set the response mode to \"Streaming Response\" on the connected trigger node.",
+        "type": "warning",
+        "location": "outputPane",
+        "whenToDisplay": "afterExecution",
+        "displayCondition": "={{ $parameter[\"enableStreaming\"] === true }}"
+      }
+    ],
+    "notes": "Supports multiple versions with streaming capabilities and enhanced UI features"
+  },
+  "production_patterns": {
+    "authentication": "No direct authentication required - relies on connected language models and tools",
+    "security": "Input validation through connected parsers and tool integration constraints",
+    "error_handling": "Fallback model support, streaming error handling, graceful degradation patterns",
+    "performance": "Streaming response support for real-time interactions, optimized for agent workflows",
+    "dynamic_inputs": "Advanced expression-based input configuration that adapts to parameter settings and versions",
+    "version_management": "Multi-version support (2.0, 2.1, 2.2) with progressive feature enhancement",
+    "streaming": "Real-time response streaming with proper trigger node coordination"
+  },
+  "implementation_template": {
+    "methods": {
+      "execute": "async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]>",
+      "constructor": "constructor(baseDescription: INodeTypeBaseDescription)",
+      "input_generation": "Advanced dynamic input generation using embedded function expressions"
+    },
+    "ui_enhancements": {
+      "callouts": "Multiple callout types including tutorial links and pre-built agents collection",
+      "hints": "Dynamic hints system with conditional display based on execution state",
+      "notices": "Context-aware help text with interactive elements"
+    },
+    "streaming_implementation": {
+      "setup": "Enable streaming with proper trigger node configuration",
+      "validation": "Runtime hints to guide proper streaming setup",
+      "error_handling": "Streaming-specific error recovery patterns"
+    },
+    "validation": {
+      "parameter_validation": "Advanced conditional parameter validation with version awareness",
+      "connection_validation": "Ensures proper AI connection types are maintained across versions",
+      "streaming_validation": "Runtime validation of streaming configuration"
+    }
+  },
+  "usage_guidelines": {
+    "best_practices": [
+      "Use auto prompt type for simple use cases, define for complex scenarios",
+      "Enable streaming for real-time user interactions",
+      "Always configure fallback models in production environments",
+      "Use output parsers when structured responses are required",
+      "Connect appropriate tools to extend agent capabilities"
+    ],
+    "configuration": {
+      "required_connections": "Must connect at least one AI language model",
+      "optional_connections": "Output parser for structured results, fallback model for reliability, tools for extended functionality",
+      "parameter_setup": "Configure prompt type, enable features based on use case requirements",
+      "streaming_setup": "Enable streaming and configure trigger node response mode accordingly"
+    },
+    "security": [
+      "Agent operates within connected language model's security context",
+      "Tool access controlled through connected tool nodes",
+      "Input validation handled through connected parsers and models",
+      "No direct external API access - security managed by connected components"
+    ],
+    "performance_considerations": [
+      "Streaming adds real-time capability but may increase resource usage",
+      "Dynamic input generation occurs at runtime - optimize for high-volume scenarios",
+      "Fallback models add latency but improve reliability",
+      "Tool connections can impact overall execution performance"
+    ],
+    "version_considerations": {
+      "v2.0": "Basic agent functionality with tool integration",
+      "v2.1": "Added fallback model support and enhanced error handling",
+      "v2.2": "Streaming capabilities and advanced UI features"
+    }
+  }
+}

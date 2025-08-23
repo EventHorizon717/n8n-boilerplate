@@ -1,0 +1,90 @@
+{
+  "name": "Gmail Send Email",
+  "description": "Send email via Gmail API - based on production Gmail node implementation",
+  "category": "communication",
+  "service": "gmail",
+  "node": {
+    "parameters": {
+      "resource": "message",
+      "operation": "send",
+      "authentication": "oAuth2",
+      "to": "{{ $json.recipient_email }}",
+      "cc": "{{ $json.cc_emails || '' }}",
+      "bcc": "{{ $json.bcc_emails || '' }}",
+      "subject": "{{ $json.email_subject }}",
+      "message": "{{ $json.email_body }}",
+      "options": {
+        "allowUnauthorizedCerts": false,
+        "attachments": "{{ $json.attachments || [] }}",
+        "replyTo": "{{ $json.reply_to || '' }}",
+        "htmlMessage": "{{ $json.html_body || '' }}"
+      }
+    },
+    "type": "n8n-nodes-base.gmail",
+    "typeVersion": 2.1,
+    "credentials": {
+      "gmailOAuth2": {
+        "id": "gmail-oauth",
+        "name": "Gmail OAuth2 Credentials"
+      }
+    },
+    "notes": "Configure Gmail OAuth2 credentials and customize email content"
+  },
+  "production_patterns": {
+    "authentication": {
+      "oauth2_required": "OAuth2 authentication required for Gmail API access",
+      "scope_requirements": "Requires appropriate Gmail scopes for sending emails",
+      "credential_validation": "Validate OAuth2 credentials before attempting to send"
+    },
+    "version_management": {
+      "versioned_implementation": "Uses VersionedNodeType pattern",
+      "backward_compatibility": "Maintains compatibility across multiple versions",
+      "default_version": "2.1 as latest stable version"
+    },
+    "email_composition": {
+      "html_support": "Support both plain text and HTML email formats",
+      "attachment_handling": "Handle multiple attachments with proper encoding",
+      "header_management": "Proper handling of To, CC, BCC, Reply-To headers",
+      "encoding": "Proper UTF-8 encoding for international characters"
+    },
+    "error_handling": {
+      "quota_management": "Handle Gmail API quota limits gracefully",
+      "authentication_failures": "Proper handling of expired or invalid credentials",
+      "recipient_validation": "Validate email addresses before sending",
+      "attachment_size_limits": "Handle large attachment size restrictions"
+    }
+  },
+  "implementation_template": {
+    "parameter_structure": {
+      "resource_operation": "Standard resource/operation parameter pattern",
+      "recipient_handling": "Support multiple recipient formats and validation",
+      "content_composition": "Separate handling for plain text and HTML content",
+      "attachment_processing": "Binary data handling for email attachments"
+    },
+    "api_integration": {
+      "gmail_api_calls": "Use googleApiRequest helper for consistent API access",
+      "response_handling": "Process Gmail API responses and extract relevant data",
+      "error_propagation": "Proper error handling and user feedback"
+    }
+  },
+  "usage_guidelines": {
+    "email_best_practices": [
+      "Use descriptive subject lines with workflow context",
+      "Include relevant workflow information in email body",
+      "Handle recipient validation and error cases",
+      "Implement proper email formatting and encoding"
+    ],
+    "security_considerations": [
+      "Never include sensitive data in email content",
+      "Use secure credential storage for Gmail authentication",
+      "Validate recipient email addresses to prevent misdelivery",
+      "Monitor sent email logs for security auditing"
+    ],
+    "performance_optimization": [
+      "Batch multiple emails when possible to reduce API calls",
+      "Use appropriate timeout settings for email delivery",
+      "Monitor Gmail API quota usage and implement throttling",
+      "Handle large attachments efficiently with streaming"
+    ]
+  }
+}

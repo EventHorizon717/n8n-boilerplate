@@ -1,0 +1,86 @@
+{
+    "name": "Production Webhook Trigger",
+    "description": "Production-grade webhook trigger with security and validation",
+    "category": "trigger",
+    "service": "generic",
+    "node": {
+        "parameters": {
+            "httpMethod": "POST",
+            "path": "{{ $json.webhook_path || 'workflow-webhook' }}",
+            "responseMode": "onReceived",
+            "response": {
+                "statusCode": 200,
+                "body": "{{ {\"status\": \"received\", \"timestamp\": new Date().toISOString(), \"execution_id\": $execution.id} }}"
+            },
+            "options": {
+                "noResponseBody": false,
+                "rawBody": false,
+                "allowedOrigins": "{{ $json.allowed_origins || '*' }}"
+            }
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "notes": "Configure webhook path and security settings"
+    },
+    "production_patterns": {
+        "security": {
+            "signature_verification": "Implement signature verification for webhook authenticity",
+            "challenge_handling": "Handle service-specific verification challenges",
+            "unauthorized_response": "Return 401 status for invalid requests",
+            "origin_validation": "Configure allowed origins for CORS security"
+        },
+        "response_handling": {
+            "immediate_response": "Use responseMode 'onReceived' for immediate acknowledgment",
+            "challenge_response": "Handle verification challenges with appropriate responses",
+            "no_webhook_response": "Use noWebhookResponse: true to prevent workflow execution",
+            "execution_tracking": "Include execution ID in response for tracking"
+        },
+        "validation": {
+            "required_headers": [
+                "Content-Type"
+            ],
+            "expected_content_type": "application/json",
+            "body_validation": "Validate webhook body structure before processing",
+            "method_restriction": "Restrict to appropriate HTTP methods"
+        },
+        "data_processing": {
+            "raw_body_handling": "Support raw body processing for specific use cases",
+            "json_parsing": "Automatic JSON parsing with error handling",
+            "binary_data_support": "Handle binary uploads when required",
+            "query_parameter_access": "Access URL query parameters alongside body data"
+        }
+    },
+    "implementation_template": {
+        "webhook_method": {
+            "signature_verification": "if (!(await verifySignature.call(this))) { const res = this.getResponseObject(); res.status(401).send('Unauthorized').end(); return { noWebhookResponse: true }; }",
+            "challenge_handling": "if (req.body.type === 'url_verification') { const res = this.getResponseObject(); res.status(200).json({ challenge: req.body.challenge }).end(); return { noWebhookResponse: true }; }",
+            "data_extraction": "const req = this.getRequestObject(); const body = req.body;",
+            "response_generation": "return { workflowData: [[{ json: body }]] };"
+        },
+        "validation_patterns": {
+            "content_type_check": "if (req.headers['content-type'] !== 'application/json') { /* handle error */ }",
+            "body_validation": "if (!body || typeof body !== 'object') { /* handle error */ }",
+            "required_fields": "if (!body.required_field) { /* handle error */ }"
+        }
+    },
+    "usage_guidelines": {
+        "security_setup": [
+            "Always configure signature verification for production webhooks",
+            "Use HTTPS endpoints only for webhook URLs",
+            "Implement proper CORS settings with specific allowed origins",
+            "Validate webhook payloads against expected schema"
+        ],
+        "path_configuration": [
+            "Use descriptive webhook paths for easier identification",
+            "Include version information in webhook paths when appropriate",
+            "Avoid predictable paths to reduce security risks",
+            "Document webhook paths for external service configuration"
+        ],
+        "response_optimization": [
+            "Return immediate acknowledgment for webhook reliability",
+            "Include useful information in webhook responses",
+            "Handle challenge requests for service verification",
+            "Monitor webhook response times and success rates"
+        ]
+    }
+}

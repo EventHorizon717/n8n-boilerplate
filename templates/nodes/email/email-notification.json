@@ -1,0 +1,47 @@
+{
+  "name": "Email Notification Template",
+  "description": "Standard email notification with template formatting",
+  "category": "communication",
+  "service": "smtp",
+  "node": {
+    "parameters": {
+      "fromEmail": "noreply@company.com",
+      "toEmail": "{{ $json.recipient_email || 'admin@company.com' }}",
+      "subject": "{{ $json.email_subject || 'Workflow Notification' }}",
+      "message": "Dear {{ $json.recipient_name || 'User' }},\\n\\n{{ $json.email_body || 'This is a notification from your n8n workflow.' }}\\n\\nDetails:\\n{{ Object.entries($json.details || {}).map(([key, value]) => `${key}: ${value}`).join('\\n') }}\\n\\nBest regards,\\nAutomation System\\n\\nTimestamp: {{ new Date().toISOString() }}",
+      "options": {
+        "allowUnauthorizedCerts": false,
+        "replyTo": "noreply@company.com"
+      }
+    },
+    "type": "n8n-nodes-base.emailSend",
+    "typeVersion": 2,
+    "credentials": {
+      "smtp": {
+        "id": "smtp-main",
+        "name": "Main SMTP"
+      }
+    },
+    "notes": "Configure SMTP credentials and customize email template"
+  },
+  "usage_guidelines": {
+    "best_practices": [
+      "Use for detailed notifications, reports, and non-urgent alerts",
+      "Create consistent message templates with workflow context",
+      "Include relevant data as formatted text in message body",
+      "Configure appropriate reply-to addresses"
+    ],
+    "security": [
+      "Use secure SMTP credentials with authentication",
+      "Validate recipient email addresses before sending",
+      "Avoid including sensitive data in email content",
+      "Use appropriate from/reply-to addresses"
+    ],
+    "performance": [
+      "Batch multiple emails when possible to reduce SMTP connections",
+      "Configure appropriate timeout settings for email delivery",
+      "Monitor email delivery success rates",
+      "Handle large email volumes with proper queuing"
+    ]
+  }
+}

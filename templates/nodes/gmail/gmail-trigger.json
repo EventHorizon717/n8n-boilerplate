@@ -1,0 +1,106 @@
+{
+  "name": "Gmail Polling Trigger",
+  "description": "Polling trigger for Gmail emails - based on production GmailTrigger implementation",
+  "category": "trigger",
+  "service": "gmail",
+  "node": {
+    "parameters": {
+      "authentication": "oAuth2",
+      "event": "messageReceived",
+      "simple": true,
+      "filters": {
+        "includeSpamTrash": false,
+        "includeDrafts": false,
+        "labelIds": "{{ $json.label_filters || [] }}",
+        "q": "{{ $json.search_query || '' }}",
+        "readStatus": "unread",
+        "sender": "{{ $json.sender_filter || '' }}"
+      },
+      "options": {
+        "dataPropertyAttachmentsPrefixName": "attachment_",
+        "downloadAttachments": false
+      }
+    },
+    "type": "n8n-nodes-base.gmailTrigger",
+    "typeVersion": 1.3,
+    "credentials": {
+      "gmailOAuth2": {
+        "id": "gmail-oauth",
+        "name": "Gmail OAuth2 Credentials"
+      }
+    },
+    "polling": true,
+    "notes": "Configure Gmail OAuth2 credentials and customize filters"
+  },
+  "production_patterns": {
+    "authentication": {
+      "oauth2_recommended": "OAuth2 is recommended over service accounts",
+      "credential_types": ["googleApi", "gmailOAuth2"],
+      "display_options": "Use displayOptions to show relevant credential types"
+    },
+    "polling_mechanism": {
+      "static_data": "Use workflow static data to track last checked timestamp",
+      "duplicate_prevention": "Track possible duplicates to prevent reprocessing",
+      "time_based_filtering": "Filter messages by received date for efficiency"
+    },
+    "data_processing": {
+      "simple_mode": "Provide simplified output for easier processing",
+      "raw_mode": "Support raw email parsing for advanced use cases",
+      "attachment_handling": "Optional attachment download with binary data support",
+      "metadata_extraction": "Extract headers (From, To, Cc, Bcc, Subject) in simple mode"
+    },
+    "filtering_patterns": {
+      "label_filtering": "Use multiOptions with loadOptionsMethod for labels",
+      "search_queries": "Support Gmail search syntax for complex filtering",
+      "read_status": "Filter by read/unread status",
+      "sender_filtering": "Filter by sender email or name",
+      "date_filtering": "Automatic filtering by last poll timestamp"
+    },
+    "error_handling": {
+      "api_failures": "Log errors but don't stop polling on API failures",
+      "invalid_dates": "Handle emails with invalid date fields gracefully",
+      "missing_data": "Provide fallback values for missing email metadata",
+      "rate_limiting": "Respect Gmail API rate limits with appropriate delays"
+    }
+  },
+  "implementation_template": {
+    "poll_method": {
+      "static_data_access": "const nodeStaticData = this.getWorkflowStaticData('node');",
+      "time_management": "const now = Math.floor(DateTime.now().toSeconds()).toString();",
+      "query_preparation": "Object.assign(qs, prepareQuery.call(this, allFilters, 0), options);",
+      "api_request": "const messagesResponse = await googleApiRequest.call(this, 'GET', '/gmail/v1/users/me/messages', {}, qs);",
+      "duplicate_handling": "responseData = responseData.filter(({ json }) => !possibleDuplicates.has(json.id));",
+      "timestamp_update": "nodeStaticData.lastTimeChecked = lastEmailDate || endDate;"
+    },
+    "methods": {
+      "loadOptions": "getLabels with Gmail API integration",
+      "data_parsing": "parseRawEmail for attachment and content extraction",
+      "output_simplification": "simplifyOutput for user-friendly data format"
+    },
+    "version_handling": {
+      "static_data_versioning": "Handle different static data structures across versions",
+      "draft_filtering": "Version-specific draft inclusion logic",
+      "sent_filtering": "Exclude sent emails in newer versions"
+    }
+  },
+  "usage_guidelines": {
+    "polling_configuration": [
+      "Set appropriate polling intervals based on email volume",
+      "Use filters to reduce API calls and processing overhead",
+      "Enable simple mode for easier data processing",
+      "Configure attachment download only when needed"
+    ],
+    "filter_optimization": [
+      "Use label filtering for organized email processing",
+      "Implement search queries for complex filtering requirements",
+      "Filter by sender to process specific email sources",
+      "Use read status filtering to avoid reprocessing"
+    ],
+    "performance": [
+      "Monitor Gmail API quota usage",
+      "Implement batching for high-volume email processing",
+      "Use static data to maintain state across polling cycles",
+      "Handle duplicate detection to prevent reprocessing"
+    ]
+  }
+}

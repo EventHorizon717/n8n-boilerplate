@@ -1,0 +1,654 @@
+{
+    "name": "Supabase Database Operations",
+    "description": "Comprehensive node for CRUD operations on Supabase databases with advanced filtering, bulk operations, and custom schema support. Handles row creation, retrieval, updates, and deletions with robust error handling and data validation.",
+    "category": "database",
+    "service": "supabase",
+    "node": {
+        "parameters": {
+            "useCustomSchema": {
+                "type": "boolean",
+                "default": false,
+                "description": "Whether to use a database schema different from the default 'public' schema",
+                "notes": "Requires schema exposure in Supabase API settings"
+            },
+            "schema": {
+                "type": "string",
+                "default": "public",
+                "description": "Name of database schema to use for table",
+                "displayOptions": {
+                    "show": {
+                        "useCustomSchema": [
+                            true
+                        ]
+                    }
+                }
+            },
+            "resource": {
+                "type": "options",
+                "options": [
+                    {
+                        "name": "Row",
+                        "value": "row"
+                    }
+                ],
+                "default": "row",
+                "description": "Resource type to operate on"
+            },
+            "operation": {
+                "displayName": "Operation",
+                "name": "operation",
+                "type": "options",
+                "noDataExpression": true,
+                "displayOptions": {
+                    "show": {
+                        "resource": [
+                            "row"
+                        ]
+                    }
+                },
+                "options": [
+                    {
+                        "name": "Create",
+                        "value": "create",
+                        "description": "Create a new row",
+                        "action": "Create a row"
+                    },
+                    {
+                        "name": "Delete",
+                        "value": "delete",
+                        "description": "Delete a row",
+                        "action": "Delete a row"
+                    },
+                    {
+                        "name": "Get",
+                        "value": "get",
+                        "description": "Get a row",
+                        "action": "Get a row"
+                    },
+                    {
+                        "name": "Get Many",
+                        "value": "getAll",
+                        "description": "Get many rows",
+                        "action": "Get many rows"
+                    },
+                    {
+                        "name": "Update",
+                        "value": "update",
+                        "description": "Update a row",
+                        "action": "Update a row"
+                    }
+                ],
+                "default": "create"
+            },
+            "tableId": {
+                "displayName": "Table Name or ID",
+                "name": "tableId",
+                "type": "options",
+                "description": "Choose from the list, or specify an ID using an <a href=\"https://docs.n8n.io/code/expressions/\">expression</a>",
+                "typeOptions": {
+                    "loadOptionsDependsOn": [
+                        "useCustomSchema",
+                        "schema"
+                    ],
+                    "loadOptionsMethod": "getTables"
+                },
+                "required": true,
+                "displayOptions": {
+                    "show": {
+                        "resource": [
+                            "row"
+                        ],
+                        "operation": [
+                            "create",
+                            "delete",
+                            "get",
+                            "getAll",
+                            "update"
+                        ]
+                    }
+                },
+                "default": ""
+            },
+            "dataToSend": {
+                "displayName": "Data to Send",
+                "name": "dataToSend",
+                "type": "options",
+                "options": [
+                    {
+                        "name": "Auto-Map Input Data to Columns",
+                        "value": "autoMapInputData",
+                        "description": "Use when node input properties match destination column names"
+                    },
+                    {
+                        "name": "Define Below for Each Column",
+                        "value": "defineBelow",
+                        "description": "Set the value for each destination column"
+                    }
+                ],
+                "displayOptions": {
+                    "show": {
+                        "resource": [
+                            "row"
+                        ],
+                        "operation": [
+                            "create",
+                            "update"
+                        ]
+                    }
+                },
+                "default": "defineBelow"
+            },
+            "fieldsUi": {
+                "displayName": "Fields to Send",
+                "name": "fieldsUi",
+                "placeholder": "Add Field",
+                "type": "fixedCollection",
+                "typeOptions": {
+                    "multipleValueButtonText": "Add Field to Send",
+                    "multipleValues": true
+                },
+                "displayOptions": {
+                    "show": {
+                        "resource": [
+                            "row"
+                        ],
+                        "operation": [
+                            "create",
+                            "update"
+                        ],
+                        "dataToSend": [
+                            "defineBelow"
+                        ]
+                    }
+                },
+                "default": {},
+                "options": [
+                    {
+                        "displayName": "Field",
+                        "name": "fieldValues",
+                        "values": [
+                            {
+                                "displayName": "Field Name or ID",
+                                "name": "fieldId",
+                                "type": "options",
+                                "description": "Choose from the list, or specify an ID using an <a href=\"https://docs.n8n.io/code/expressions/\">expression</a>",
+                                "typeOptions": {
+                                    "loadOptionsDependsOn": [
+                                        "tableId"
+                                    ],
+                                    "loadOptionsMethod": "getTableColumns"
+                                },
+                                "default": ""
+                            },
+                            {
+                                "displayName": "Field Value",
+                                "name": "fieldValue",
+                                "type": "string",
+                                "default": ""
+                            }
+                        ]
+                    }
+                ]
+            },
+            "inputsToIgnore": {
+                "displayName": "Inputs to Ignore",
+                "name": "inputsToIgnore",
+                "type": "string",
+                "displayOptions": {
+                    "show": {
+                        "resource": [
+                            "row"
+                        ],
+                        "operation": [
+                            "create",
+                            "update"
+                        ],
+                        "dataToSend": [
+                            "autoMapInputData"
+                        ]
+                    }
+                },
+                "default": "",
+                "description": "List of input properties to avoid sending, separated by commas. Leave empty to send all properties.",
+                "placeholder": "Enter properties..."
+            },
+            "filterType": {
+                "displayName": "Select Type",
+                "name": "filterType",
+                "type": "options",
+                "options": [
+                    {
+                        "name": "None",
+                        "value": "none"
+                    },
+                    {
+                        "name": "Build Manually",
+                        "value": "manual"
+                    },
+                    {
+                        "name": "String",
+                        "value": "string"
+                    }
+                ],
+                "displayOptions": {
+                    "show": {
+                        "resource": [
+                            "row"
+                        ],
+                        "operation": [
+                            "getAll",
+                            "delete",
+                            "update"
+                        ]
+                    }
+                },
+                "default": "manual",
+                "description": "How to specify the filter conditions"
+            },
+            "matchType": {
+                "displayName": "Must Match",
+                "name": "matchType",
+                "type": "options",
+                "options": [
+                    {
+                        "name": "Any Select Condition",
+                        "value": "anyFilter"
+                    },
+                    {
+                        "name": "All Select Conditions",
+                        "value": "allFilters"
+                    }
+                ],
+                "displayOptions": {
+                    "show": {
+                        "resource": [
+                            "row"
+                        ],
+                        "operation": [
+                            "getAll",
+                            "delete",
+                            "update"
+                        ],
+                        "filterType": [
+                            "manual"
+                        ]
+                    }
+                },
+                "default": "anyFilter",
+                "description": "Whether to match any or all of the conditions"
+            },
+            "filters": {
+                "displayName": "Select Conditions",
+                "name": "filters",
+                "type": "fixedCollection",
+                "typeOptions": {
+                    "multipleValues": true
+                },
+                "displayOptions": {
+                    "show": {
+                        "resource": [
+                            "row"
+                        ]
+                    }
+                },
+                "default": {},
+                "placeholder": "Add Condition",
+                "options": [
+                    {
+                        "displayName": "Conditions",
+                        "name": "conditions",
+                        "values": [
+                            {
+                                "displayName": "Name or ID",
+                                "name": "keyName",
+                                "type": "options",
+                                "typeOptions": {
+                                    "loadOptionsDependsOn": [
+                                        "tableId"
+                                    ],
+                                    "loadOptionsMethod": "getTableColumns"
+                                },
+                                "default": "",
+                                "description": "Choose from the list, or specify an ID using an <a href=\"https://docs.n8n.io/code/expressions/\">expression</a>"
+                            },
+                            {
+                                "displayName": "Value",
+                                "name": "keyValue",
+                                "type": "string",
+                                "default": ""
+                            }
+                        ]
+                    }
+                ]
+            },
+            "filtersUI": {
+                "displayName": "Select Conditions",
+                "name": "filtersUI",
+                "type": "fixedCollection",
+                "typeOptions": {
+                    "multipleValues": true
+                },
+                "displayOptions": {
+                    "show": {
+                        "resource": [
+                            "row"
+                        ],
+                        "operation": [
+                            "getAll",
+                            "delete",
+                            "update"
+                        ],
+                        "filterType": [
+                            "manual"
+                        ]
+                    }
+                },
+                "default": {},
+                "placeholder": "Add Condition",
+                "options": [
+                    {
+                        "displayName": "Conditions",
+                        "name": "conditions",
+                        "values": [
+                            {
+                                "displayName": "Field Name or ID",
+                                "name": "keyName",
+                                "type": "options",
+                                "description": "Choose from the list, or specify an ID using an <a href=\"https://docs.n8n.io/code/expressions/\">expression</a>",
+                                "typeOptions": {
+                                    "loadOptionsDependsOn": [
+                                        "tableId"
+                                    ],
+                                    "loadOptionsMethod": "getTableColumns"
+                                },
+                                "default": ""
+                            },
+                            {
+                                "displayName": "Condition",
+                                "name": "condition",
+                                "type": "options",
+                                "options": [
+                                    {
+                                        "name": "Equals",
+                                        "value": "eq"
+                                    },
+                                    {
+                                        "name": "Full-Text",
+                                        "value": "fullText"
+                                    },
+                                    {
+                                        "name": "Greater Than",
+                                        "value": "gt"
+                                    },
+                                    {
+                                        "name": "Greater Than or Equal",
+                                        "value": "gte"
+                                    },
+                                    {
+                                        "name": "ILIKE operator",
+                                        "value": "ilike",
+                                        "description": "Use * in place of %"
+                                    },
+                                    {
+                                        "name": "Is",
+                                        "value": "is",
+                                        "description": "Checking for exact equality (null,true,false,unknown)"
+                                    },
+                                    {
+                                        "name": "Less Than",
+                                        "value": "lt"
+                                    },
+                                    {
+                                        "name": "Less Than or Equal",
+                                        "value": "lte"
+                                    },
+                                    {
+                                        "name": "LIKE operator",
+                                        "value": "like",
+                                        "description": "Use * in place of %"
+                                    },
+                                    {
+                                        "name": "Not Equals",
+                                        "value": "neq"
+                                    }
+                                ],
+                                "default": ""
+                            },
+                            {
+                                "displayName": "Search Function",
+                                "name": "searchFunction",
+                                "type": "options",
+                                "displayOptions": {
+                                    "show": {
+                                        "condition": [
+                                            "fullText"
+                                        ]
+                                    }
+                                },
+                                "options": [
+                                    {
+                                        "name": "to_tsquery",
+                                        "value": "fts"
+                                    },
+                                    {
+                                        "name": "plainto_tsquery",
+                                        "value": "plfts"
+                                    },
+                                    {
+                                        "name": "phraseto_tsquery",
+                                        "value": "phfts"
+                                    },
+                                    {
+                                        "name": "websearch_to_tsquery",
+                                        "value": "wfts"
+                                    }
+                                ],
+                                "default": ""
+                            },
+                            {
+                                "displayName": "Field Value",
+                                "name": "keyValue",
+                                "type": "string",
+                                "default": ""
+                            }
+                        ]
+                    }
+                ]
+            },
+            "filterStringNotice": {
+                "displayName": "",
+                "name": "filterStringNotice",
+                "type": "notice",
+                "default": "",
+                "displayOptions": {
+                    "show": {
+                        "resource": [
+                            "row"
+                        ],
+                        "operation": [
+                            "getAll",
+                            "delete",
+                            "update"
+                        ],
+                        "filterType": [
+                            "string"
+                        ]
+                    }
+                },
+                "description": "See <a href=\"https://postgrest.org/en/stable/references/api/tables_views.html#horizontal-filtering\" target=\"_blank\">PostgREST guide</a> to creating filters"
+            },
+            "filterString": {
+                "displayName": "Filter String",
+                "name": "filterString",
+                "type": "string",
+                "description": "Raw filter string for advanced queries",
+                "placeholder": "name=eq.john",
+                "default": "",
+                "displayOptions": {
+                    "show": {
+                        "resource": [
+                            "row"
+                        ],
+                        "operation": [
+                            "getAll",
+                            "delete",
+                            "update"
+                        ],
+                        "filterType": [
+                            "string"
+                        ]
+                    }
+                }
+            },
+            "returnAll": {
+                "displayName": "Return All",
+                "name": "returnAll",
+                "type": "boolean",
+                "noDataExpression": true,
+                "displayOptions": {
+                    "show": {
+                        "resource": [
+                            "row"
+                        ],
+                        "operation": [
+                            "getAll"
+                        ]
+                    }
+                },
+                "default": false,
+                "description": "Whether to return all results or only up to a given limit"
+            },
+            "limit": {
+                "displayName": "Limit",
+                "name": "limit",
+                "type": "number",
+                "displayOptions": {
+                    "show": {
+                        "resource": [
+                            "row"
+                        ],
+                        "operation": [
+                            "getAll"
+                        ],
+                        "returnAll": [
+                            false
+                        ]
+                    }
+                },
+                "typeOptions": {
+                    "minValue": 1
+                },
+                "default": 50,
+                "description": "Max number of results to return"
+            }
+        },
+        "type": "supabase",
+        "typeVersion": 1,
+        "credentials": [
+            {
+                "name": "supabaseApi",
+                "required": true,
+                "testedBy": "supabaseApiCredentialTest"
+            }
+        ],
+        "notes": {
+            "inputs": "Main input connection for processing data",
+            "outputs": "Main output with processed results",
+            "usableAsTool": "Can be used as a tool in AI workflows",
+            "subtitle": "Dynamic subtitle showing operation and resource",
+            "icon": "Supabase SVG icon file"
+        }
+    },
+    "production_patterns": {
+        "authentication": {
+            "credential_testing": "Validates Supabase service key with API health check using validateCredentials function",
+            "api_key_management": "Service key stored securely in credential system with Authorization Bearer token",
+            "connection_validation": "Real-time credential validation before operations with proper error handling",
+            "custom_schema_support": "Handles custom database schemas with Content-Profile and Accept-Profile headers"
+        },
+        "security": {
+            "schema_validation": "Custom schema support with API exposure requirement",
+            "input_sanitization": "Parameter validation and type checking",
+            "credential_encryption": "Encrypted storage of API credentials"
+        },
+        "error_handling": {
+            "graceful_degradation": "Continue processing valid records when some fail",
+            "detailed_error_reporting": "Comprehensive error messages with context",
+            "continue_on_fail": "Optional error tolerance for batch operations",
+            "operation_rollback": "Safe failure handling without data corruption"
+        },
+        "performance": {
+            "bulk_operations": "Efficient batch processing for multiple records",
+            "pagination_handling": "Automatic pagination for large result sets (1000+ records)",
+            "query_optimization": "Dynamic query building for efficient filtering",
+            "connection_reuse": "Optimized API connection management"
+        },
+        "data_management": {
+            "automatic_mapping": "Auto-map input data to database fields",
+            "field_filtering": "Ignore specific fields during auto-mapping",
+            "dynamic_schema_loading": "Runtime table and column discovery",
+            "type_coercion": "Intelligent data type handling"
+        }
+    },
+    "implementation_template": {
+        "methods": {
+            "loadOptions_getTables": "Dynamic table discovery from Supabase schema using supabaseApiRequest",
+            "loadOptions_getTableColumns": "Column metadata loading with type information and loadOptionsDependsOn",
+            "credentialTest": "Service key validation using validateCredentials function with proper error handling",
+            "execute": "Main execution logic with operation routing and mapPairedItemsFrom for error tracking"
+        },
+        "dynamic_loading": {
+            "table_discovery": "API introspection to load available tables",
+            "column_metadata": "Schema analysis for column types and properties",
+            "schema_validation": "Runtime validation of table and column existence"
+        },
+        "query_building": {
+            "filter_construction": "Build complex filter conditions using buildQuery function with PostgREST operators",
+            "or_query_building": "Construct OR-based filter expressions using buildOrQuery with proper comma separation",
+            "get_query_optimization": "Optimize SELECT queries using buildGetQuery for performance",
+            "full_text_search": "Support PostgreSQL full-text search with to_tsquery, plainto_tsquery, phraseto_tsquery, and websearch_to_tsquery",
+            "advanced_operators": "Support for eq, neq, gt, gte, lt, lte, like, ilike, is conditions with proper PostgREST syntax"
+        },
+        "batch_processing": {
+            "record_iteration": "Process multiple input items efficiently",
+            "bulk_insert": "Batch creation of multiple records",
+            "pagination_logic": "Handle large result sets with automatic pagination"
+        },
+        "data_transformation": {
+            "field_mapping": "Map UI field definitions to database structure",
+            "auto_mapping_logic": "Intelligent input data to table field mapping",
+            "type_conversion": "Handle data type conversions safely"
+        }
+    },
+    "usage_guidelines": {
+        "best_practices": {
+            "schema_design": "Use custom schemas for multi-tenant applications",
+            "error_handling": "Always enable 'Continue on Fail' for batch operations",
+            "performance": "Use string filters for complex queries requiring custom PostgREST syntax",
+            "data_mapping": "Prefer auto-mapping for dynamic workflows, manual mapping for static schemas"
+        },
+        "configuration": {
+            "initial_setup": "Configure Supabase API credentials with service key",
+            "schema_exposure": "Enable custom schema access in Supabase API settings if needed",
+            "table_selection": "Use dynamic table loading for flexible workflows",
+            "column_mapping": "Leverage column metadata for type-safe operations"
+        },
+        "security": {
+            "credential_management": "Never hardcode service keys, use n8n credential system",
+            "access_control": "Implement row-level security in Supabase for multi-tenant access",
+            "data_validation": "Always validate input data before database operations"
+        },
+        "performance": {
+            "batch_size": "Process large datasets in chunks to avoid memory issues",
+            "indexing": "Ensure proper database indexes for filter operations",
+            "query_optimization": "Use string filters for complex PostgREST queries",
+            "pagination": "Let the node handle pagination automatically for large result sets"
+        },
+        "troubleshooting": {
+            "credential_errors": "Verify service key and Supabase project URL",
+            "schema_errors": "Check custom schema exposure in API settings",
+            "filter_errors": "Validate filter syntax against PostgREST documentation",
+            "performance_issues": "Monitor query complexity and add appropriate indexes"
+        }
+    }
+}

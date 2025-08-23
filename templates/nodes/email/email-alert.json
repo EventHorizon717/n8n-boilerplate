@@ -1,0 +1,42 @@
+{
+  "name": "Critical Alert Email",
+  "description": "High-priority email alert for critical issues",
+  "category": "communication",
+  "service": "smtp",
+  "node": {
+    "parameters": {
+      "fromEmail": "alerts@company.com",
+      "toEmail": "{{ $json.alert_recipients || 'oncall@company.com' }}",
+      "subject": "🚨 CRITICAL ALERT: {{ $json.alert_title || 'Workflow Issue' }}",
+      "message": "CRITICAL ALERT\\n\\nWorkflow: {{ $workflow.name }}\\nExecution ID: {{ $execution.id }}\\nTimestamp: {{ new Date().toISOString() }}\\n\\nIssue: {{ $json.alert_message }}\\n\\nSeverity: {{ $json.severity || 'HIGH' }}\\n\\nAction Required: {{ $json.action_required || 'Immediate investigation needed' }}\\n\\nDetails:\\n{{ JSON.stringify($json.error_details || {}, null, 2) }}\\n\\n--- End Alert ---",
+      "options": {
+        "allowUnauthorizedCerts": false,
+        "replyTo": "alerts@company.com",
+        "priority": "high"
+      }
+    },
+    "type": "n8n-nodes-base.emailSend",
+    "typeVersion": 2,
+    "credentials": {
+      "smtp": {
+        "id": "smtp-alerts",
+        "name": "Alert SMTP"
+      }
+    },
+    "notes": "Use for critical system alerts requiring immediate attention"
+  },
+  "usage_guidelines": {
+    "alert_configuration": [
+      "Use for critical alerts requiring immediate attention",
+      "Configure separate SMTP credentials for alert emails",
+      "Include comprehensive error details and context",
+      "Set high priority flag for email clients"
+    ],
+    "escalation": [
+      "Configure multiple recipient addresses for redundancy",
+      "Include on-call rotation addresses",
+      "Provide clear action items in alert messages",
+      "Include relevant troubleshooting information"
+    ]
+  }
+}

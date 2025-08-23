@@ -1,0 +1,188 @@
+{
+  "node_catalog": {
+    "description": "Catalog of all available node templates organized by service and category",
+    "version": "2.0",
+    "structure": "individual_files", 
+    "migration_completed": "2024-01-01",
+    "total_nodes": 16
+  },
+  "services": {
+    "slack": {
+      "description": "Slack team communication and collaboration",
+      "nodes": {
+        "slack-notification": "templates/nodes/slack/slack-notification.json",
+        "slack-trigger": "templates/nodes/slack/slack-trigger.json"
+      }
+    },
+    "gmail": {
+      "description": "Gmail email processing and automation",
+      "nodes": {
+        "gmail-trigger": "templates/nodes/gmail/gmail-trigger.json",
+        "gmail-send": "templates/nodes/gmail/gmail-send.json"
+      }
+    },
+    "email": {
+      "description": "SMTP email notifications and alerts",
+      "nodes": {
+        "email-notification": "templates/nodes/email/email-notification.json",
+        "email-alert": "templates/nodes/email/email-alert.json"
+      }
+    },
+    "webhook": {
+      "description": "Generic webhook triggers and integrations",
+      "nodes": {
+        "webhook-trigger": "templates/nodes/webhook/webhook-trigger.json"
+      }
+    },
+    "teams": {
+      "description": "Microsoft Teams collaboration and notifications",
+      "nodes": {
+        "teams-notification": "templates/nodes/teams/teams-notification.json"
+      }
+    },
+    "discord": {
+      "description": "Discord community and developer notifications", 
+      "nodes": {
+        "discord-webhook": "templates/nodes/discord/discord-webhook.json"
+      }
+    },
+    "twilio": {
+      "description": "SMS and voice communication via Twilio",
+      "nodes": {
+        "sms-notification": "templates/nodes/twilio/sms-notification.json"
+      }
+    },
+    "http": {
+      "description": "Generic HTTP requests and webhook integrations",
+      "nodes": {
+        "generic-webhook": "templates/nodes/http/generic-webhook.json",
+        "http-request-retry": "templates/nodes/http/http-request-retry.json"
+      }
+    },
+    "database": {
+      "description": "Database operations and data persistence",
+      "nodes": {
+        "postgres-upsert": "templates/nodes/database/postgres-upsert.json",
+        "postgres-select": "templates/nodes/database/postgres-select.json"
+      }
+    },
+    "processing": {
+      "description": "Data transformation and manipulation",
+      "nodes": {
+        "data-transformation": "templates/nodes/processing/data-transformation.json",
+        "edit-fields-set": "templates/nodes/processing/edit-fields-set.json"
+      }
+    },
+    "core": {
+      "description": "Core workflow control and utility nodes",
+      "nodes": {
+        "conditional-switch": "templates/nodes/core/conditional-switch.json", 
+        "error-handler": "templates/nodes/core/error-handler.json"
+      }
+    }
+  },
+  "categories": {
+    "trigger": {
+      "description": "Nodes that start workflows based on events or schedules",
+      "nodes": [
+        "slack/slack-trigger",
+        "gmail/gmail-trigger", 
+        "webhook/webhook-trigger"
+      ]
+    },
+    "communication": {
+      "description": "Nodes for sending notifications and messages",
+      "nodes": [
+        "slack/slack-notification",
+        "gmail/gmail-send",
+        "email/email-notification",
+        "email/email-alert",
+        "teams/teams-notification", 
+        "discord/discord-webhook",
+        "twilio/sms-notification",
+        "http/generic-webhook"
+      ]
+    },
+    "processing": {
+      "description": "Nodes for data transformation and business logic",
+      "nodes": [
+        "processing/data-transformation",
+        "processing/edit-fields-set",
+        "core/conditional-switch"
+      ]
+    },
+    "database": {
+      "description": "Nodes for database operations and persistence",
+      "nodes": [
+        "database/postgres-upsert",
+        "database/postgres-select"
+      ]
+    },
+    "integration": {
+      "description": "Nodes for external service integration",
+      "nodes": [
+        "http/http-request-retry"
+      ]
+    },
+    "utility": {
+      "description": "Core utility and error handling nodes",
+      "nodes": [
+        "core/error-handler"
+      ]
+    }
+  },
+  "workflow_patterns": {
+    "basic_webhook_to_notification": {
+      "description": "Simple webhook trigger to notification pattern",
+      "nodes": [
+        {"service": "webhook", "node": "webhook-trigger"},
+        {"service": "slack", "node": "slack-notification"}
+      ]
+    },
+    "gmail_processing_pipeline": {
+      "description": "Gmail trigger with data processing and team notification",
+      "nodes": [
+        {"service": "gmail", "node": "gmail-trigger"},
+        {"service": "processing", "node": "data-transformation"},
+        {"service": "core", "node": "conditional-switch"},
+        {"service": "slack", "node": "slack-notification"},
+        {"service": "database", "node": "postgres-upsert"}
+      ]
+    },
+    "api_integration_with_retry": {
+      "description": "HTTP API integration with retry logic and error handling",
+      "nodes": [
+        {"service": "webhook", "node": "webhook-trigger"},
+        {"service": "http", "node": "http-request-retry"},
+        {"service": "core", "node": "error-handler"},
+        {"service": "email", "node": "email-alert"}
+      ]
+    },
+    "critical_alert_cascade": {
+      "description": "Multi-channel critical alert notification pattern",
+      "nodes": [
+        {"service": "webhook", "node": "webhook-trigger"},
+        {"service": "core", "node": "conditional-switch"},
+        {"service": "email", "node": "email-alert"},
+        {"service": "slack", "node": "slack-notification"},
+        {"service": "twilio", "node": "sms-notification"}
+      ]
+    },
+    "data_processing_pipeline": {
+      "description": "Complete data processing with database persistence",
+      "nodes": [
+        {"service": "webhook", "node": "webhook-trigger"},
+        {"service": "processing", "node": "data-transformation"},
+        {"service": "database", "node": "postgres-upsert"},
+        {"service": "core", "node": "error-handler"}
+      ]
+    }
+  },
+  "usage": {
+    "node_selection": "Use services.{service}.nodes.{node_name} to reference specific implementations",
+    "pattern_reference": "Use workflow_patterns for common node combinations and proven patterns",
+    "category_browsing": "Use categories to find nodes by functionality type", 
+    "service_browsing": "Use services to find all nodes for a specific platform or technology"
+  },
+  "migration_status": "complete"
+}

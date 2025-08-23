@@ -1,0 +1,79 @@
+{
+  "name": "Slack Event Trigger",
+  "description": "Webhook trigger for Slack events - based on production SlackTrigger implementation",
+  "category": "trigger",
+  "service": "slack",
+  "node": {
+    "parameters": {
+      "trigger": "{{ $json.event_types || ['message'] }}",
+      "watchWorkspace": false,
+      "channelId": {
+        "mode": "list",
+        "value": "{{ $json.channel_id || '' }}"
+      },
+      "downloadFiles": false,
+      "options": {
+        "resolveIds": false,
+        "userIds": []
+      }
+    },
+    "type": "n8n-nodes-base.slackTrigger",
+    "typeVersion": 1,
+    "credentials": {
+      "slackApi": {
+        "id": "slack-trigger",
+        "name": "Slack Trigger Credentials"
+      }
+    },
+    "webhooks": [
+      {
+        "name": "default",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "path": "webhook"
+      }
+    ],
+    "notes": "Configure Slack app webhook and signing secret for security"
+  },
+  "production_patterns": {
+    "webhook_security": {
+      "signature_verification": "Required - always verify incoming webhook signatures",
+      "url_verification": "Handle Slack challenge requests for webhook validation",
+      "unauthorized_response": "Return 401 for invalid signatures"
+    },
+    "event_filtering": {
+      "multi_level": "Filter by event type, channel, and user to reduce processing",
+      "early_returns": "Return empty object {} to skip workflow execution",
+      "workspace_vs_channel": "Support both workspace-wide and channel-specific filtering"
+    },
+    "data_enhancement": {
+      "resolve_ids": "Optional resolution of user/channel IDs to human-readable names",
+      "file_download": "Optional file download with binary data handling",
+      "user_filtering": "Exclude specific users from triggering workflows"
+    },
+    "resource_locator": {
+      "modes": ["list", "id", "url"],
+      "validation": "Regex validation for IDs and URLs",
+      "extraction": "Extract values from URLs using regex patterns"
+    }
+  },
+  "implementation_template": {
+    "webhook_method": {
+      "signature_verification": "if (!(await verifySignature.call(this))) { return { noWebhookResponse: true }; }",
+      "challenge_handling": "if (req.body.type === 'url_verification') { res.status(200).json({ challenge: req.body.challenge }).end(); }",
+      "event_filtering": "if (!filters.includes(eventType)) { return {}; }",
+      "user_filtering": "if (userIds.includes(req.body.event.user)) { return {}; }",
+      "data_enhancement": "if (options.resolveIds) { req.body.event.user_resolved = await getUserInfo.call(this, req.body.event.user); }"
+    },
+    "methods": {
+      "listSearch": "getChannels with filtering and sorting",
+      "loadOptions": "getUsers for user selection dropdowns",
+      "webhookMethods": "Handle webhook lifecycle (checkExists, create, delete)"
+    },
+    "response_format": {
+      "success": "{ workflowData: [[{ json: req.body.event, binary: binaryData }]] }",
+      "skip": "return {};",
+      "unauthorized": "{ noWebhookResponse: true }"
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+    "name": "Discord Webhook Notification",
+    "description": "Send rich embed notification to Discord channel via webhook",
+    "category": "communication",
+    "service": "discord",
+    "node": {
+        "parameters": {
+            "url": "{{ $json.discord_webhook_url }}",
+            "method": "POST",
+            "sendHeaders": true,
+            "headerParameters": {
+                "parameters": [
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    }
+                ]
+            },
+            "sendBody": true,
+            "bodyContentType": "json",
+            "jsonParameters": true,
+            "bodyParametersJson": {
+                "username": "{{ $json.bot_name || 'n8n Workflow' }}",
+                "avatar_url": "{{ $json.avatar_url || '' }}",
+                "embeds": [
+                    {
+                        "title": "{{ $json.title || 'Workflow Notification' }}",
+                        "description": "{{ $json.message || 'Workflow completed successfully' }}",
+                        "color": "{{ $json.alert_level === 'error' ? 15158332 : ($json.alert_level === 'warning' ? 16776960 : 3066993) }}",
+                        "fields": [
+                            {
+                                "name": "Workflow",
+                                "value": "{{ $workflow.name }}",
+                                "inline": true
+                            },
+                            {
+                                "name": "Status",
+                                "value": "{{ $json.status || 'completed' }}",
+                                "inline": true
+                            },
+                            {
+                                "name": "Timestamp",
+                                "value": "{{ new Date().toISOString() }}",
+                                "inline": true
+                            }
+                        ],
+                        "timestamp": "{{ new Date().toISOString() }}"
+                    }
+                ]
+            }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "notes": "Set discord_webhook_url in input data"
+    },
+    "usage_guidelines": {
+        "webhook_setup": [
+            "Use for developer communities and informal team communication",
+            "Configure Discord webhook URL in server/channel settings",
+            "Customize bot appearance with username and avatar",
+            "Use rich embeds for structured notification content"
+        ],
+        "embed_formatting": [
+            "Use color coding for different alert levels (red=error, yellow=warning, green=success)",
+            "Structure information with inline fields for compact display",
+            "Include timestamps for chronological tracking",
+            "Limit embed content to Discord's size restrictions"
+        ]
+    }
+}

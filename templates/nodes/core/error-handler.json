@@ -1,0 +1,68 @@
+{
+    "name": "Comprehensive Error Handler",
+    "description": "Error handling node with logging and notification capabilities",
+    "category": "core",
+    "service": "core",
+    "node": {
+        "parameters": {
+            "mode": "manual",
+            "assignments": {
+                "assignments": [
+                    {
+                        "id": "error_timestamp",
+                        "name": "error_timestamp",
+                        "type": "string",
+                        "value": "={{ new Date().toISOString() }}"
+                    },
+                    {
+                        "id": "workflow_context",
+                        "name": "workflow_context",
+                        "type": "object",
+                        "value": "={{ { workflow_id: $workflow.id, workflow_name: $workflow.name, execution_id: $execution.id, node_name: $('Webhook').name } }}"
+                    },
+                    {
+                        "id": "error_details",
+                        "name": "error_details",
+                        "type": "object",
+                        "value": "={{ { message: $json.error?.message || 'Unknown error', code: $json.error?.code || 'UNKNOWN', stack: $json.error?.stack || null, input_data: $input.all() } }}"
+                    },
+                    {
+                        "id": "alert_level",
+                        "name": "alert_level",
+                        "type": "string",
+                        "value": "error"
+                    },
+                    {
+                        "id": "recovery_action",
+                        "name": "recovery_action",
+                        "type": "string",
+                        "value": "{{ $json.error?.recoverable ? 'retry_possible' : 'manual_intervention_required' }}"
+                    }
+                ]
+            }
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3,
+        "notes": "Standardizes error information for logging and alerting"
+    },
+    "production_patterns": {
+        "error_classification": [
+            "Capture complete error context including workflow and node information",
+            "Classify errors as recoverable vs non-recoverable",
+            "Include input data for error reproduction",
+            "Add timestamps for error tracking and analysis"
+        ],
+        "logging_strategy": [
+            "Structure error data for easy searching and analysis",
+            "Include sufficient context for troubleshooting",
+            "Maintain consistent error format across workflows",
+            "Enable correlation with external logging systems"
+        ],
+        "recovery_patterns": [
+            "Identify recoverable errors for automatic retry",
+            "Route non-recoverable errors to manual intervention",
+            "Preserve original data for reprocessing after fixes",
+            "Implement exponential backoff for retries"
+        ]
+    }
+}

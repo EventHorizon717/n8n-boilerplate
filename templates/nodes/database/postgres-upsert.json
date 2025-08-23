@@ -1,0 +1,42 @@
+{
+    "name": "PostgreSQL Upsert Operation",
+    "description": "PostgreSQL INSERT with ON CONFLICT (upsert) operation",
+    "category": "database",
+    "service": "postgres",
+    "node": {
+        "parameters": {
+            "operation": "executeQuery",
+            "query": "INSERT INTO {{ $json.table_name || 'table_name' }} (id, field1, field2, updated_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP) ON CONFLICT (id) DO UPDATE SET field1 = EXCLUDED.field1, field2 = EXCLUDED.field2, updated_at = CURRENT_TIMESTAMP",
+            "additionalFields": {
+                "queryReplacement": [
+                    "={{ $json.id }}",
+                    "={{ $json.field1 }}",
+                    "={{ $json.field2 }}"
+                ]
+            }
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2,
+        "credentials": {
+            "postgres": {
+                "id": "postgres-main",
+                "name": "Main Database"
+            }
+        },
+        "notes": "Replace table_name and fields with actual database schema"
+    },
+    "usage_guidelines": {
+        "upsert_pattern": [
+            "Use for INSERT or UPDATE operations based on conflict detection",
+            "Configure ON CONFLICT clause with appropriate constraint columns",
+            "Use EXCLUDED to reference values from the INSERT attempt",
+            "Include updated_at timestamp for audit tracking"
+        ],
+        "performance": [
+            "Create unique indexes on conflict columns for optimal performance",
+            "Batch multiple upsert operations when possible",
+            "Monitor query execution time for large datasets",
+            "Use appropriate connection pooling for concurrent operations"
+        ]
+    }
+}

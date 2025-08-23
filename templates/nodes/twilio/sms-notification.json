@@ -1,0 +1,38 @@
+{
+  "name": "SMS Notification via Twilio",
+  "description": "Send SMS notification using Twilio service",
+  "category": "communication",
+  "service": "twilio",
+  "node": {
+    "parameters": {
+      "resource": "sms",
+      "operation": "send",
+      "from": "{{ $json.from_number }}",
+      "to": "{{ $json.to_number }}",
+      "message": "{{ $json.sms_message || 'Workflow notification from ' + $workflow.name + ' at ' + new Date().toLocaleString() }}"
+    },
+    "type": "n8n-nodes-base.twilio",
+    "typeVersion": 2,
+    "credentials": {
+      "twilioApi": {
+        "id": "twilio-main",
+        "name": "Main Twilio Account"
+      }
+    },
+    "notes": "Configure Twilio credentials and verify phone numbers"
+  },
+  "usage_guidelines": {
+    "sms_best_practices": [
+      "Use for critical alerts requiring immediate attention",
+      "Keep messages concise due to SMS character limits",
+      "Include essential information only (workflow name, status, timestamp)",
+      "Verify phone numbers before sending to avoid delivery failures"
+    ],
+    "compliance": [
+      "Ensure compliance with SMS regulations in target regions",
+      "Implement opt-out mechanisms for recipients",
+      "Monitor delivery rates and failed message handling",
+      "Use verified Twilio phone numbers for sending"
+    ]
+  }
+}

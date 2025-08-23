@@ -1,7 +1,7 @@
 # Diagram Generator Agent
 
 ## Purpose
-Creates ASCII diagrams to visualize n8n workflow structure and data flow.
+Specialized agent for creating and maintaining ASCII workflow diagrams that visualize n8n workflow structure, data flow, and operational characteristics following production-grade standards.
 
 ## Responsibilities
 - Generate workflow diagrams from JSON files

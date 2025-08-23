@@ -1,0 +1,98 @@
+{
+  "name": "AI Agent Tool",
+  "description": "AI Agent tool node that provides conversational AI functionality with tool integration, output parsing, and fallback model support",
+  "category": "AI Agent",
+  "service": "ai-agent",
+  "node": {
+    "parameters": {
+      "toolDescription": {
+        "type": "string",
+        "description": "Description of the tool functionality",
+        "required": true
+      },
+      "text": {
+        "type": "string", 
+        "description": "Input text for the AI agent",
+        "required": true
+      },
+      "hasOutputParser": {
+        "type": "boolean",
+        "default": false,
+        "description": "Require specific output format by connecting an output parser",
+        "noDataExpression": true
+      },
+      "needsFallback": {
+        "type": "boolean",
+        "default": false,
+        "description": "Enable fallback model for error recovery",
+        "noDataExpression": true,
+        "displayOptions": {
+          "show": {
+            "@version": [{ "_cnd": { "gte": 2.1 } }]
+          }
+        }
+      }
+    },
+    "type": "n8n-nodes-base.agentTool",
+    "typeVersion": 2.2,
+    "credentials": [],
+    "inputs": {
+      "dynamic": true,
+      "pattern": "={{((hasOutputParser, needsFallback) => { return getInputs(false, hasOutputParser, needsFallback)})(...)}}",
+      "types": ["ai-languageModel", "ai-outputParser", "ai-tool"]
+    },
+    "outputs": ["ai-tool"],
+    "connectionTypes": {
+      "input": ["ai-languageModel", "ai-outputParser", "ai-tool"],
+      "output": ["ai-tool"]
+    },
+    "notes": "Automatically wrapped as a tool, uses dynamic input generation based on configuration"
+  },
+  "production_patterns": {
+    "authentication": "No direct authentication required - relies on connected language models",
+    "security": "Input validation through tool description and output parser constraints", 
+    "error_handling": "Fallback model support for handling primary model failures",
+    "performance": "Optimized for tool chaining and agent workflows",
+    "dynamic_inputs": "Uses expression-based input configuration that adapts to parameter settings",
+    "version_management": "Supports multiple versions (2.2) with conditional feature display"
+  },
+  "implementation_template": {
+    "methods": {
+      "execute": "async execute(this: IExecuteFunctions | ISupplyDataFunctions): Promise<INodeExecutionData[][]>",
+      "constructor": "constructor(baseDescription: INodeTypeBaseDescription)",
+      "input_generation": "Dynamic input generation using embedded function expressions"
+    },
+    "dynamic_configuration": {
+      "inputs": "Uses embedded JavaScript expression for dynamic input types based on parameters",
+      "display_options": "Conditional UI element display based on version and parameter values",
+      "notices": "Dynamic help text and connection guidance"
+    },
+    "validation": {
+      "parameter_validation": "Boolean parameters with noDataExpression for UI-only values",
+      "connection_validation": "Ensures proper AI connection types are maintained"
+    }
+  },
+  "usage_guidelines": {
+    "best_practices": [
+      "Always provide clear tool description for proper agent integration",
+      "Use output parsers when structured responses are required", 
+      "Enable fallback models for production reliability",
+      "Connect appropriate language models for tool functionality"
+    ],
+    "configuration": {
+      "required_connections": "Must connect at least one AI language model",
+      "optional_connections": "Output parser for structured results, fallback model for reliability",
+      "parameter_setup": "Configure tool description and enable features as needed"
+    },
+    "security": [
+      "Tool operates within connected language model's security context",
+      "Input validation handled through connected parsers and models",
+      "No direct external API access - security managed by connected components"
+    ],
+    "performance_considerations": [
+      "Tool wrapping adds minimal overhead to execution",
+      "Dynamic input generation occurs at runtime - consider caching for high-volume scenarios",
+      "Fallback models add latency but improve reliability"
+    ]
+  }
+}

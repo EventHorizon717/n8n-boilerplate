@@ -1,0 +1,76 @@
+{
+  "name": "HTTP Request with Retry Logic",
+  "description": "HTTP request node with comprehensive error handling and retry configuration",
+  "category": "integration",
+  "service": "http",
+  "node": {
+    "parameters": {
+      "url": "{{ $json.api_url || 'https://api.example.com/endpoint' }}",
+      "method": "POST",
+      "authentication": "genericCredentialType",
+      "genericAuthType": "httpHeaderAuth",
+      "sendHeaders": true,
+      "headerParameters": {
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "name": "Accept",
+            "value": "application/json"
+          },
+          {
+            "name": "User-Agent",
+            "value": "n8n-workflow/1.0"
+          }
+        ]
+      },
+      "sendBody": true,
+      "bodyContentType": "json",
+      "jsonParameters": true,
+      "bodyParametersJson": "={{ $json.request_body || {} }}",
+      "options": {
+        "timeout": 30000,
+        "retry": {
+          "enabled": true,
+          "maxTries": 3,
+          "waitBetweenTries": 1000
+        },
+        "response": {
+          "fullResponse": false,
+          "neverError": false
+        }
+      }
+    },
+    "type": "n8n-nodes-base.httpRequest",
+    "typeVersion": 4,
+    "credentials": {
+      "httpHeaderAuth": {
+        "id": "api-auth",
+        "name": "API Authentication"
+      }
+    },
+    "notes": "Configure URL, authentication, and request body based on API requirements"
+  },
+  "production_patterns": {
+    "retry_strategy": [
+      "Enable retry mechanism for transient failures",
+      "Configure exponential backoff between retry attempts",
+      "Set maximum retry count based on API characteristics",
+      "Monitor retry success rates and adjust parameters"
+    ],
+    "error_handling": [
+      "Use neverError: false to catch HTTP error responses",
+      "Implement circuit breaker patterns for repeated failures",
+      "Log request/response details for debugging",
+      "Handle rate limiting with appropriate delays"
+    ],
+    "security": [
+      "Use credential system for API authentication",
+      "Include User-Agent header for request identification",
+      "Validate SSL certificates in production",
+      "Avoid logging sensitive data in request/response"
+    ]
+  }
+}

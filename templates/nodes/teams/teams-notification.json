@@ -1,0 +1,80 @@
+{
+  "name": "Microsoft Teams Notification",
+  "description": "Send adaptive card notification to Teams channel",
+  "category": "communication",
+  "service": "teams",
+  "node": {
+    "parameters": {
+      "resource": "message",
+      "operation": "post",
+      "teamId": "{{ $json.team_id }}",
+      "channelId": "{{ $json.channel_id }}",
+      "messageType": "message",
+      "message": {
+        "type": "message",
+        "attachments": [
+          {
+            "contentType": "application/vnd.microsoft.card.adaptive",
+            "content": {
+              "type": "AdaptiveCard",
+              "version": "1.3",
+              "body": [
+                {
+                  "type": "TextBlock",
+                  "text": "{{ $json.title || 'Workflow Notification' }}",
+                  "weight": "Bolder",
+                  "size": "Medium"
+                },
+                {
+                  "type": "TextBlock",
+                  "text": "{{ $json.message || 'Workflow completed successfully' }}",
+                  "wrap": true
+                },
+                {
+                  "type": "FactSet",
+                  "facts": [
+                    {
+                      "title": "Workflow:",
+                      "value": "{{ $workflow.name }}"
+                    },
+                    {
+                      "title": "Status:",
+                      "value": "{{ $json.status || 'completed' }}"
+                    },
+                    {
+                      "title": "Timestamp:",
+                      "value": "{{ new Date().toISOString() }}"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "type": "n8n-nodes-base.microsoftTeams",
+    "typeVersion": 2,
+    "credentials": {
+      "microsoftTeamsOAuth2Api": {
+        "id": "teams-main",
+        "name": "Main Teams App"
+      }
+    },
+    "notes": "Configure Teams app credentials and customize adaptive card layout"
+  },
+  "usage_guidelines": {
+    "adaptive_cards": [
+      "Use in Microsoft-centric environments for rich formatted notifications",
+      "Leverage adaptive card format for interactive content",
+      "Include structured data with FactSet for key information",
+      "Use appropriate text formatting and visual hierarchy"
+    ],
+    "teams_integration": [
+      "Configure Teams app with appropriate permissions",
+      "Use OAuth2 authentication for secure access",
+      "Test adaptive card rendering in Teams client",
+      "Monitor notification delivery and user engagement"
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+{
+    "name": "Conditional Routing Switch",
+    "description": "Switch node template for conditional routing based on data values",
+    "category": "core",
+    "service": "core",
+    "node": {
+        "parameters": {
+            "mode": "expression",
+            "output": "specified",
+            "rules": {
+                "rules": [
+                    {
+                        "id": "condition_1",
+                        "outputIndex": 0,
+                        "value": "={{ $json.status === 'active' }}"
+                    },
+                    {
+                        "id": "condition_2",
+                        "outputIndex": 1,
+                        "value": "={{ $json.status === 'inactive' }}"
+                    },
+                    {
+                        "id": "condition_3",
+                        "outputIndex": 2,
+                        "value": "={{ $json.priority === 'high' }}"
+                    },
+                    {
+                        "id": "default_condition",
+                        "outputIndex": 3,
+                        "value": "={{ true }}"
+                    }
+                ]
+            },
+            "outputConnections": 4
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3,
+        "notes": "Configure conditions and output paths based on workflow logic"
+    },
+    "usage_guidelines": {
+        "routing_patterns": [
+            "Use for conditional workflow branching based on data values",
+            "Include default condition as final rule for unmatched cases",
+            "Configure appropriate number of output connections",
+            "Use descriptive condition IDs for better maintainability"
+        ],
+        "best_practices": [
+            "Order conditions from most specific to most general",
+            "Use boolean expressions for clear conditional logic",
+            "Handle edge cases with null checks and fallback values",
+            "Document routing logic in node notes"
+        ]
+    }
+}

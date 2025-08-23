@@ -1,0 +1,86 @@
+{
+  "name": "Slack Channel Notification",
+  "description": "Send formatted message to Slack channel - based on production Slack node implementation",
+  "category": "communication",
+  "service": "slack",
+  "version_pattern": "versioned_node_type",
+  "node": {
+    "parameters": {
+      "resource": "message",
+      "operation": "post",
+      "channel": "{{ $json.slack_channel || '#general' }}",
+      "text": "{{ $json.message || 'Workflow notification' }}",
+      "attachments": [
+        {
+          "color": "{{ $json.alert_level === 'error' ? 'danger' : ($json.alert_level === 'warning' ? 'warning' : 'good') }}",
+          "fields": [
+            {
+              "title": "Workflow",
+              "value": "{{ $workflow.name }}",
+              "short": true
+            },
+            {
+              "title": "Status",
+              "value": "{{ $json.status || 'completed' }}",
+              "short": true
+            },
+            {
+              "title": "Timestamp",
+              "value": "{{ new Date().toISOString() }}",
+              "short": true
+            }
+          ]
+        }
+      ],
+      "otherOptions": {
+        "includeLinkToWorkflow": true
+      }
+    },
+    "type": "n8n-nodes-base.slack",
+    "typeVersion": 2.3,
+    "credentials": {
+      "slackApi": {
+        "id": "slack-main",
+        "name": "Main Slack Workspace"
+      }
+    },
+    "notes": "Configure Slack workspace credentials and customize message format"
+  },
+  "production_patterns": {
+    "authentication": {
+      "type": "slackApi",
+      "required": true,
+      "supports_oauth": true
+    },
+    "validation": {
+      "channel_validation": "Uses resourceLocator pattern with list/ID/URL modes",
+      "regex_patterns": {
+        "channel_id": "[a-zA-Z0-9]{2,}",
+        "channel_url": "http(s)?://app.slack.com/client/.*/([a-zA-Z0-9]{2,})"
+      }
+    },
+    "error_handling": {
+      "signature_verification": "Always verify webhook signatures for security",
+      "rate_limiting": "Implement exponential backoff for API limits",
+      "fallback_channels": "Support fallback notification channels"
+    }
+  },
+  "usage_guidelines": {
+    "best_practices": [
+      "Use for team collaboration and real-time workflow status updates",
+      "Leverage platform-specific formatting with attachments and fields",
+      "Implement color coding for different alert levels",
+      "Include workflow context (name, execution ID, timestamp)"
+    ],
+    "security": [
+      "Store credentials securely in n8n credential system",
+      "Avoid including sensitive data in message content",
+      "Use workspace-appropriate channels for different notification types"
+    ],
+    "performance": [
+      "Batch multiple notifications when possible",
+      "Use async processing for better workflow performance",
+      "Monitor delivery success rates and API rate limits"
+    ]
+  }
+}

@@ -1,187 +1,124 @@
 {
-  "template_index": {
-    "version": "1.0.0",
-    "last_updated": "2025-08-22",
-    "description": "Centralized index of all n8n node templates organized by category",
-    "template_files": {
-      "core-nodes.json": {
-        "description": "Essential workflow nodes including triggers, validation, and error handling",
-        "category": "core",
-        "nodes": [
-          "webhook_trigger",
-          "conditional_switch", 
-          "error_handler",
-          "data_validation",
-          "schedule_trigger",
-          "manual_trigger"
-        ],
-        "use_cases": [
-          "Workflow entry points",
-          "Basic routing and logic",
-          "Input validation",
-          "Error handling"
-        ]
-      },
-      "database-nodes.json": {
-        "description": "Database operation templates for various CRUD operations",
-        "category": "database",
-        "nodes": [
-          "database_upsert",
-          "database_select",
-          "database_insert", 
-          "database_update",
-          "database_delete",
-          "database_transaction",
-          "mysql_upsert",
-          "database_connection_pool"
-        ],
-        "use_cases": [
-          "Data persistence",
-          "CRUD operations",
-          "Transaction management",
-          "Database health checks"
-        ]
-      },
-      "communication-nodes.json": {
-        "description": "Notification and communication templates for various platforms",
-        "category": "communication",
-        "nodes": [
-          "email_notification",
-          "slack_notification",
-          "teams_notification",
-          "discord_webhook",
-          "sms_notification",
-          "webhook_notification",
-          "email_alert"
-        ],
-        "use_cases": [
-          "User notifications",
-          "System alerts", 
-          "Team communication",
-          "Critical issue reporting"
-        ]
-      },
-      "data-processing-nodes.json": {
-        "description": "Data transformation and processing templates",
-        "category": "data_processing",
-        "nodes": [
-          "data_transformation",
-          "batch_processor",
-          "merge_results",
-          "data_aggregation",
-          "data_filtering",
-          "data_sorting",
-          "data_deduplication",
-          "json_parser"
-        ],
-        "use_cases": [
-          "Data transformation",
-          "Batch processing",
-          "Data analysis",
-          "Data quality improvement"
-        ]
-      },
-      "integration-nodes.json": {
-        "description": "API integration and external service templates",
-        "category": "integration",
-        "nodes": [
-          "http_request_with_retry",
-          "rest_api_client",
-          "graphql_client",
-          "oauth2_api_client",
-          "webhook_sender",
-          "api_rate_limiter",
-          "api_response_parser",
-          "file_upload_client"
-        ],
-        "use_cases": [
-          "External API integration",
-          "Third-party services",
-          "File operations",
-          "Rate limiting"
-        ]
-      }
+  "template_catalog": {
+    "description": "Master catalog of all n8n workflow templates and components",
+    "version": "2.0",
+    "structure": "individual_node_files",
+    "migration_from": "v1.0 monolithic files",
+    "last_updated": "2024-01-01"
+  },
+  "node_catalog": {
+    "file": "nodes/index.json",
+    "description": "Complete catalog of individual node templates organized by service",
+    "structure": "service_based_organization",
+    "benefits": [
+      "Individual files for better maintainability",
+      "Service-specific organization for easier navigation",
+      "Focused documentation per service",
+      "Scalable structure for adding new services"
+    ]
+  },
+  "services": {
+    "slack": {
+      "directory": "templates/nodes/slack/",
+      "description": "Slack team communication and collaboration",
+      "node_count": 2,
+      "nodes": [
+        "slack-notification.json",
+        "slack-trigger.json"
+      ],
+      "documentation": "slack-patterns.md"
     },
-    "workflow_patterns": {
-      "basic_webhook_to_email": {
-        "description": "Simple webhook trigger to email notification pattern",
-        "complexity": "low",
-        "template_files": ["core-nodes.json", "data-processing-nodes.json", "communication-nodes.json"],
-        "estimated_setup_time": "15 minutes"
-      },
-      "api_to_database": {
-        "description": "API data fetching to database storage pattern", 
-        "complexity": "medium",
-        "template_files": ["integration-nodes.json", "core-nodes.json", "database-nodes.json"],
-        "estimated_setup_time": "30 minutes"
-      },
-      "conditional_processing": {
-        "description": "Conditional routing with different processing paths",
-        "complexity": "medium",
-        "template_files": ["core-nodes.json", "data-processing-nodes.json"],
-        "estimated_setup_time": "25 minutes"
-      },
-      "batch_processing": {
-        "description": "Large dataset processing with batching",
-        "complexity": "high",
-        "template_files": ["core-nodes.json", "data-processing-nodes.json", "database-nodes.json"],
-        "estimated_setup_time": "45 minutes"
-      }
+    "gmail": {
+      "directory": "templates/nodes/gmail/",
+      "description": "Gmail email processing and automation",
+      "node_count": 2,
+      "nodes": [
+        "gmail-trigger.json",
+        "gmail-send.json"
+      ],
+      "documentation": "gmail-patterns.md"
     },
-    "quick_reference": {
-      "by_category": {
-        "triggers": ["webhook_trigger", "schedule_trigger", "manual_trigger"],
-        "data_validation": ["data_validation", "data_filtering"],
-        "transformations": ["data_transformation", "data_aggregation", "data_sorting"],
-        "database_ops": ["database_upsert", "database_select", "database_insert"],
-        "api_calls": ["http_request_with_retry", "rest_api_client", "graphql_client"],
-        "notifications": ["email_notification", "slack_notification", "sms_notification"],
-        "error_handling": ["error_handler"],
-        "flow_control": ["conditional_switch", "batch_processor", "merge_results"]
-      },
-      "by_complexity": {
-        "simple": ["webhook_trigger", "manual_trigger", "email_notification", "data_transformation"],
-        "moderate": ["database_upsert", "http_request_with_retry", "data_validation", "conditional_switch"],
-        "advanced": ["api_rate_limiter", "data_aggregation", "database_transaction", "oauth2_api_client"]
-      },
-      "by_use_case": {
-        "data_ingestion": ["webhook_trigger", "http_request_with_retry", "data_validation"],
-        "data_processing": ["data_transformation", "batch_processor", "data_filtering"],
-        "data_storage": ["database_upsert", "database_insert", "database_update"],
-        "notifications": ["email_notification", "slack_notification", "webhook_notification"],
-        "integrations": ["rest_api_client", "graphql_client", "webhook_sender"],
-        "monitoring": ["error_handler", "database_connection_pool", "api_response_parser"]
-      }
+    "email": {
+      "directory": "templates/nodes/email/",
+      "description": "SMTP email notifications and alerts",
+      "node_count": 2,
+      "nodes": [
+        "email-notification.json",
+        "email-alert.json"
+      ],
+      "documentation": "email-patterns.md"
+    },
+    "webhook": {
+      "directory": "templates/nodes/webhook/",
+      "description": "Generic webhook triggers and integrations",
+      "node_count": 1,
+      "nodes": [
+        "webhook-trigger.json"
+      ],
+      "documentation": "webhook-patterns.md"
+    },
+    "teams": {
+      "directory": "templates/nodes/teams/",
+      "description": "Microsoft Teams collaboration and notifications",
+      "node_count": 1,
+      "nodes": [
+        "teams-notification.json"
+      ],
+      "documentation": "teams-patterns.md"
+    },
+    "discord": {
+      "directory": "templates/nodes/discord/",
+      "description": "Discord community and developer notifications",
+      "node_count": 1,
+      "nodes": [
+        "discord-webhook.json"
+      ],
+      "documentation": "discord-patterns.md"
+    },
+    "twilio": {
+      "directory": "templates/nodes/twilio/",
+      "description": "SMS and voice communication via Twilio",
+      "node_count": 1,
+      "nodes": [
+        "sms-notification.json"
+      ],
+      "documentation": "twilio-patterns.md"
+    },
+    "http": {
+      "directory": "templates/nodes/http/",
+      "description": "Generic HTTP requests and webhook integrations",
+      "node_count": 1,
+      "nodes": [
+        "generic-webhook.json"
+      ],
+      "documentation": "http-patterns.md"
     }
   },
-  "usage_instructions": {
-    "getting_started": {
-      "step_1": "Identify your workflow requirements and use case",
-      "step_2": "Select appropriate template category from template_files",
-      "step_3": "Choose specific node templates that match your needs",
-      "step_4": "Customize node parameters for your specific implementation",
-      "step_5": "Connect nodes according to workflow patterns or create custom flow"
-    },
-    "template_customization": {
-      "required_changes": [
-        "Update credential references to match your setup",
-        "Modify URLs, endpoints, and connection strings",
-        "Customize field names and data transformations",
-        "Set appropriate timeout and retry values"
-      ],
-      "optional_enhancements": [
-        "Add custom validation rules",
-        "Implement additional error handling",
-        "Configure monitoring and alerting",
-        "Add performance optimizations"
-      ]
-    },
-    "best_practices": {
-      "organization": "Keep templates organized by category for easy discovery",
-      "documentation": "Document any customizations made to template nodes",
-      "testing": "Test template configurations in development before production",
-      "versioning": "Track template versions and changes over time",
-      "security": "Review and update credentials and security settings regularly"
-    }
+  "migration_status": {
+    "completed": [
+      "communication-nodes.json -> individual service files"
+    ],
+    "in_progress": [
+      "core-nodes.json -> individual node files"
+    ],
+    "pending": [
+      "data-processing-nodes.json -> individual files",
+      "integration-nodes.json -> individual files", 
+      "database-nodes.json -> individual files"
+    ]
+  },
+  "usage": {
+    "node_reference": "Use templates/nodes/{service}/{node}.json for specific implementations",
+    "service_patterns": "Reference templates/nodes/{service}/{service}-patterns.md for implementation guidance",
+    "catalog_browsing": "Use templates/nodes/index.json for comprehensive node discovery",
+    "workflow_patterns": "Reference workflow_patterns in nodes/index.json for common combinations"
+  },
+  "benefits_of_new_structure": {
+    "maintainability": "Each node is self-contained and independently updatable",
+    "scalability": "Easy to add new services without affecting existing implementations",
+    "clarity": "Clear separation between different services and node types",
+    "reusability": "Individual nodes can be referenced and reused across workflows",
+    "documentation": "Service-specific documentation and patterns",
+    "version_control": "Easier to track changes to specific node implementations"
   }
 }

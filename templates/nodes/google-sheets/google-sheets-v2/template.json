@@ -1,0 +1,289 @@
+{
+  "name": "Google Sheets V2",
+  "description": "Advanced Google Sheets operations with router-based architecture, comprehensive CRUD operations, and resource mapping capabilities",
+  "category": "productivity",
+  "service": "google-sheets", 
+  "typeVersion": "2.0",
+  "versions": ["1.0", "2.0"],
+  "node": {
+    "parameters": {
+      "authentication": "googleSheetsOAuth2Api",
+      "resource": "sheet",
+      "operation": "read",
+      "documentId": {
+        "mode": "list",
+        "value": ""
+      },
+      "sheetName": {
+        "mode": "list",
+        "value": ""
+      },
+      "options": {
+        "range": "A:Z",
+        "valueInputOption": "RAW",
+        "valueRenderOption": "UNFORMATTED_VALUE",
+        "dateTimeRenderOption": "SERIAL_NUMBER"
+      }
+    },
+    "type": "n8n-nodes-base.googleSheets",
+    "typeVersion": 2.0,
+    "credentials": {
+      "googleSheetsOAuth2Api": {
+        "id": "{{ credential_id }}",
+        "name": "Google Sheets OAuth2"
+      }
+    },
+    "notes": "Advanced Google Sheets operations with router-based architecture and comprehensive data manipulation"
+  },
+  "patterns": {
+    "router_architecture": {
+      "description": "Implements router pattern for operation dispatch",
+      "execution_flow": "Router receives context and delegates to specific operation handlers",
+      "version_handling": "Version-specific logic encapsulated in versionDescription",
+      "modular_structure": "Separated concerns with actions, methods, and transport layers"
+    },
+    "resource_operation_matrix": {
+      "sheet_resource": {
+        "operations": ["create", "read", "update", "delete", "clear", "append"],
+        "description": "Full CRUD operations on sheet data with flexible configuration",
+        "data_formats": "Support for various input/output formats and transformations"
+      },
+      "spreadsheet_resource": {
+        "operations": ["create", "read", "update", "copy"],
+        "description": "Spreadsheet-level operations including metadata management",
+        "configuration": "Sheet creation, formatting, and structural modifications"
+      },
+      "row_resource": {
+        "operations": ["create", "read", "update", "delete"],
+        "description": "Row-specific operations with precise targeting",
+        "indexing": "Support for row number and header-based addressing"
+      },
+      "column_resource": {
+        "operations": ["create", "read", "update", "delete"],
+        "description": "Column-level operations with schema management",
+        "formatting": "Column formatting, validation, and data type handling"
+      }
+    },
+    "method_abstractions": {
+      "load_options": {
+        "description": "Dynamic option loading for form controls",
+        "implementation": "Spreadsheet and sheet enumeration with search capabilities",
+        "caching": "Efficient caching of metadata for performance optimization"
+      },
+      "credential_test": {
+        "description": "OAuth2 credential validation and scope verification",
+        "error_handling": "Graceful credential failure handling with clear messaging",
+        "permissions": "Scope requirement validation and permission checking"
+      },
+      "list_search": {
+        "description": "Dynamic search functionality for resource selection",
+        "filtering": "Real-time filtering of spreadsheets and sheets",
+        "pagination": "Efficient handling of large resource lists"
+      },
+      "resource_mapping": {
+        "description": "Advanced data mapping and transformation capabilities", 
+        "schema_detection": "Automatic schema detection and field mapping",
+        "type_conversion": "Intelligent data type conversion and validation"
+      }
+    },
+    "version_description_pattern": {
+      "description": "Centralized version configuration and feature management",
+      "parameter_evolution": "Version-specific parameter availability and behavior",
+      "backward_compatibility": "Graceful handling of version migrations and legacy support",
+      "feature_flags": "Conditional feature availability based on node version"
+    },
+    "transport_abstraction": {
+      "description": "Unified API communication layer with error handling",
+      "authentication": "OAuth2 token management with automatic refresh",
+      "rate_limiting": "Built-in rate limiting and retry mechanisms",
+      "error_mapping": "Consistent error mapping from API responses to node errors"
+    },
+    "data_processing_pipeline": {
+      "input_transformation": {
+        "value_input_options": "RAW, USER_ENTERED for different data interpretation modes",
+        "range_processing": "Flexible range specification and validation",
+        "batch_operations": "Efficient batch processing for large datasets"
+      },
+      "output_transformation": {
+        "value_render_options": "FORMATTED_VALUE, UNFORMATTED_VALUE, FORMULA",
+        "date_time_handling": "Configurable date/time rendering with locale support",
+        "data_type_preservation": "Maintain data types through processing pipeline"
+      },
+      "error_resilience": {
+        "partial_failures": "Graceful handling of partial operation failures",
+        "data_validation": "Input validation with detailed error reporting",
+        "recovery_strategies": "Automatic recovery from transient failures"
+      }
+    }
+  },
+  "implementation": {
+    "router_pattern": {
+      "execution_entry": "async execute(this: IExecuteFunctions) { return await router.call(this); }",
+      "operation_dispatch": "Router analyzes parameters and delegates to appropriate handlers",
+      "context_management": "Maintains execution context throughout operation chain",
+      "error_propagation": "Consistent error handling across all operation paths"
+    },
+    "modular_architecture": {
+      "actions_layer": {
+        "description": "Operation-specific logic encapsulation",
+        "structure": "actions/[resource]/[operation].ts pattern",
+        "reusability": "Shared logic components across similar operations",
+        "testing": "Isolated unit testing of individual operations"
+      },
+      "methods_layer": {
+        "description": "Reusable functionality across operations",
+        "components": ["loadOptions", "credentialTest", "listSearch", "resourceMapping"],
+        "abstraction": "Common patterns extracted for reuse",
+        "maintenance": "Centralized maintenance of shared functionality"
+      },
+      "transport_layer": {
+        "description": "API communication abstraction",
+        "features": ["Authentication", "Rate limiting", "Error handling", "Response parsing"],
+        "consistency": "Uniform API interaction patterns",
+        "debugging": "Comprehensive logging and error reporting"
+      }
+    },
+    "version_management": {
+      "version_description": {
+        "purpose": "Centralized version configuration management",
+        "structure": "Parameter definitions, display options, validation rules",
+        "evolution": "Version-specific feature enablement and parameter availability"
+      },
+      "backward_compatibility": {
+        "parameter_mapping": "Legacy parameter translation to current format",
+        "feature_detection": "Runtime feature availability checking",
+        "migration_paths": "Smooth upgrade paths between versions"
+      }
+    },
+    "resource_mapping": {
+      "schema_detection": {
+        "header_analysis": "Automatic detection of column headers and data types",
+        "data_profiling": "Statistical analysis of data patterns for type inference",
+        "validation_rules": "Generation of validation rules based on data analysis"
+      },
+      "field_mapping": {
+        "automatic_mapping": "Intelligent field matching between schemas",
+        "manual_overrides": "User-controlled mapping for complex scenarios",
+        "transformation_rules": "Data transformation specifications during mapping"
+      }
+    },
+    "operation_implementations": {
+      "read_operations": {
+        "range_based": "Efficient range-based data retrieval with pagination",
+        "query_filtering": "Server-side filtering capabilities where supported",
+        "format_options": "Flexible output formatting with multiple render options"
+      },
+      "write_operations": {
+        "upsert_logic": "Intelligent insert/update logic with conflict resolution",
+        "batch_processing": "Optimized batch operations for large datasets",
+        "validation": "Pre-write validation with detailed error reporting"
+      },
+      "structural_operations": {
+        "sheet_management": "Creation, deletion, and modification of sheet structure",
+        "formatting_control": "Cell formatting, styling, and layout management",
+        "metadata_handling": "Spreadsheet metadata creation and maintenance"
+      }
+    }
+  },
+  "usage": {
+    "basic_operations": {
+      "read_sheet_data": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": { "mode": "list", "value": "spreadsheet_name" },
+        "sheetName": { "mode": "list", "value": "Sheet1" },
+        "options": {
+          "range": "A1:Z1000",
+          "valueRenderOption": "FORMATTED_VALUE"
+        }
+      },
+      "append_row": {
+        "resource": "sheet", 
+        "operation": "append",
+        "documentId": { "mode": "id", "value": "spreadsheet_id" },
+        "sheetName": { "mode": "list", "value": "Sheet1" },
+        "options": {
+          "valueInputOption": "USER_ENTERED",
+          "insertDataOption": "INSERT_ROWS"
+        }
+      },
+      "update_cells": {
+        "resource": "sheet",
+        "operation": "update", 
+        "documentId": { "mode": "url", "value": "sheets_url" },
+        "sheetName": { "mode": "list", "value": "Data" },
+        "options": {
+          "range": "A2:C2",
+          "valueInputOption": "RAW"
+        }
+      }
+    },
+    "advanced_operations": {
+      "create_spreadsheet": {
+        "resource": "spreadsheet",
+        "operation": "create",
+        "options": {
+          "title": "New Spreadsheet",
+          "sheets": [
+            { "title": "Data", "gridProperties": { "rowCount": 1000, "columnCount": 26 } }
+          ]
+        }
+      },
+      "batch_update": {
+        "resource": "sheet",
+        "operation": "batchUpdate",
+        "options": {
+          "requests": [
+            {
+              "updateCells": {
+                "range": "A1:C3",
+                "rows": [/* data rows */],
+                "fields": "userEnteredValue"
+              }
+            }
+          ]
+        }
+      },
+      "clear_range": {
+        "resource": "sheet",
+        "operation": "clear",
+        "options": {
+          "range": "A1:Z1000"
+        }
+      }
+    },
+    "resource_locator_patterns": {
+      "document_selection": {
+        "by_list": { "mode": "list", "value": "Human readable name" },
+        "by_url": { "mode": "url", "value": "https://docs.google.com/spreadsheets/d/.../edit" },
+        "by_id": { "mode": "id", "value": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms" }
+      },
+      "sheet_selection": {
+        "by_list": { "mode": "list", "value": "Sheet1" },
+        "by_url": { "mode": "url", "value": "...#gid=0" },
+        "by_id": { "mode": "id", "value": "0" }
+      }
+    },
+    "data_processing_options": {
+      "value_input_options": {
+        "RAW": "Values are stored as-is without parsing",
+        "USER_ENTERED": "Values are parsed as if typed into the UI (formulas, dates)"
+      },
+      "value_render_options": {
+        "FORMATTED_VALUE": "Formatted according to cell formatting",
+        "UNFORMATTED_VALUE": "Raw values without formatting",
+        "FORMULA": "Return formulas for cells containing formulas"
+      },
+      "date_time_render_options": {
+        "SERIAL_NUMBER": "Excel-style serial number format",
+        "FORMATTED_STRING": "Formatted string according to spreadsheet locale"
+      }
+    },
+    "error_handling_patterns": {
+      "permission_errors": "Clear guidance on required permissions and access levels",
+      "validation_errors": "Detailed validation error messages with correction guidance",
+      "rate_limit_handling": "Automatic retry with exponential backoff for rate limits",
+      "data_format_errors": "Type conversion errors with fallback strategies"
+    }
+  }
+}

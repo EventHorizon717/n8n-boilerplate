@@ -1,0 +1,64 @@
+{
+  "name": "Generic Webhook Notification",
+  "description": "Send notification to generic webhook endpoint",
+  "category": "communication",
+  "service": "http",
+  "node": {
+    "parameters": {
+      "url": "{{ $json.webhook_url }}",
+      "method": "POST",
+      "authentication": "{{ $json.auth_type || 'none' }}",
+      "sendHeaders": true,
+      "headerParameters": {
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "name": "User-Agent",
+            "value": "n8n-workflow/1.0"
+          }
+        ]
+      },
+      "sendBody": true,
+      "bodyContentType": "json",
+      "jsonParameters": true,
+      "bodyParametersJson": {
+        "event": "workflow_notification",
+        "workflow_id": "{{ $workflow.id }}",
+        "workflow_name": "{{ $workflow.name }}",
+        "execution_id": "{{ $execution.id }}",
+        "timestamp": "{{ new Date().toISOString() }}",
+        "status": "{{ $json.status || 'completed' }}",
+        "message": "{{ $json.message || 'Workflow notification' }}",
+        "data": "{{ $json.notification_data || {} }}"
+      },
+      "options": {
+        "timeout": 10000,
+        "retry": {
+          "enabled": true,
+          "maxTries": 3,
+          "waitBetweenTries": 1000
+        }
+      }
+    },
+    "type": "n8n-nodes-base.httpRequest",
+    "typeVersion": 4,
+    "notes": "Configure webhook_url and auth_type in input data"
+  },
+  "usage_guidelines": {
+    "webhook_integration": [
+      "Use for system-to-system notifications and custom integrations",
+      "Include comprehensive workflow context in payload",
+      "Implement retry logic for reliable delivery",
+      "Configure appropriate timeouts for external services"
+    ],
+    "security": [
+      "Validate webhook URLs before sending requests",
+      "Use authentication when supported by target service",
+      "Include User-Agent header for request identification",
+      "Monitor webhook response codes and handle failures"
+    ]
+  }
+}
